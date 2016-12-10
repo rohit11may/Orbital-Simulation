@@ -1,20 +1,23 @@
-__author__ = 'Rohit'
-
 # Orbital Simulation Practical Project
 # Rohit Prasad
 # 2016-2017
-# Last changed on 09/12/2016
+# Last changed on 10/12/2016
+
+import logging
+from src.vector import Vector
 
 
-class Body():
-    def __init__(self, id, name, mass, position, velocity, acceleration, type):
+
+class Body(object):
+    def __init__(self, id, name, mass, position, velocity, type):
         self._id = id
         self._name = name
         self._mass = mass
         self._position = position
         self._velocity = velocity
-        self._acceleration = acceleration
         self._type = type
+
+        self._acceleration = Vector(0, 0)
 
     def updateSelf(self, force, dt):
         pass
@@ -51,7 +54,6 @@ class Body():
     #Setters
     @id.setter
     def id(self, value):
-        print("HEY")
         self._id = value
 
     @name.setter
@@ -60,20 +62,36 @@ class Body():
 
     @mass.setter
     def mass(self, value):
-        self._mass = value
+        if isinstance(value, float):
+            self._mass = value
+        else:
+            logging.critical("{}: Mass must be a float: Value = {} Type = {}".format(self.name, value, type(value)))
 
     @position.setter
     def position(self, value):
-        self._position = value
+        if isinstance(value, Vector):
+            self._position = value
+        else:
+            logging.critical("{}: Position must be a vector: Value = {} Type = {}".format(self.name, value, type(value)))
 
     @velocity.setter
     def velocity(self, value):
-        self._velocity = value
+        if isinstance(value, Vector):
+            self._velocity= value
+        else:
+            logging.critical("{}: Velocity must be a vector: Value = {} Type = {}".format(self.name, value, type(value)))
 
     @acceleration.setter
     def acceleration(self, value):
-        self._acceleration = value
+        if isinstance(value, Vector):
+            self._acceleration = value
+        else:
+            logging.critical("{}: Acceleration must be a vector: Value = {} Type = {}".format(self.name, value, type(value)))
 
     @type.setter
     def type(self, value):
-        self._type = value
+        if value in ["Star", "Comet", "Planet", "Moon", "Other"]:
+            self._type = value
+        else:
+            logging.warning("{}: Type must be valid: Value = {}".format(self.name, value))
+
