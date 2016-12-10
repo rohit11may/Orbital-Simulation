@@ -4,25 +4,26 @@
 # Last changed on 10/12/2016
 
 import logging
-from src.vector import Vector
+from src.vector import Vector #imports the vector class from Vector.py
 
 
 
 class Body(object):
-    def __init__(self, id, name, mass, position, velocity, type):
-        self._id = id
-        self._name = name
-        self._mass = mass
-        self._position = position
-        self._velocity = velocity
-        self._type = type
-
-        self._acceleration = Vector(0, 0)
+    def __init__(self):
+        self._id = "" #id initialised to empty string.
+        self._name = "" # Name initialised to empty string.
+        self._mass = 0 # Mass initialised to 0.
+        self._position = Vector() # Position initialised to zero vector.
+        self._velocity = Vector() # Velocity initialised to zero vector.
+        self._type = "" #Type initialised to empty string.
+        self._acceleration = Vector() # Acceleration initialised to 0
 
     def updateSelf(self, force, dt):
-        pass
+        self.acceleration = force.divide(self.mass)
+        self.velocity = self.velocity.add(self.acceleration.multiply(dt))
+        self.position = self.position.add(self.velocity.multiply(dt))
 
-    #Getters
+    #Getter functions. @property avoids the need to use the getter and setter function calls when using it in code.
     @property
     def id(self):
         return self._id
@@ -51,7 +52,7 @@ class Body(object):
     def type(self):
         return self._type
 
-    #Setters
+    #Setter functions. Uses .setter suffix to denote the setter functions. E.g. "body.id" will call the setter below.
     @id.setter
     def id(self, value):
         self._id = value
@@ -94,4 +95,3 @@ class Body(object):
             self._type = value
         else:
             logging.warning("{}: Type must be valid: Value = {}".format(self.name, value))
-
