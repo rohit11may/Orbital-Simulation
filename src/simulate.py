@@ -11,7 +11,7 @@ from matplotlib.backends.backend_qt4agg import (
     NavigationToolbar2QT as NavigationToolbar)
 
 # Multiprocessing module.
-from multiprocessing import Process, Array, Pipe, Pool
+from multiprocessing import Process, Array, Pipe, Pool, Manager
 
 # Matplotlib
 import matplotlib.animation as animation
@@ -19,12 +19,13 @@ from matplotlib.figure import Figure
 
 # Local
 from src.body import Body
-from src.orbitmath import calculate_resultant_force
+from src.orbitmath import calculate_resultant_force, return_positions
 from src.vector import Vector
 
 # Others
 import sys
 import logging
+import time
 from functools import partial # To tie arguments together for pooling.
 
 logging.basicConfig(format='%(asctime)s.%(msecs)03d // %(message)s',
@@ -37,28 +38,32 @@ Ui_MainWindow, QMainWindow = loadUiType('..//GUI//window.ui') # Load UI file fro
 
 
 
-def generate(bodies, positionData, comm):
-    pool = Pool(processes=len(bodies)) # Create a process for each body.
-    func = partial(calculate_resultant_force, bodies) # Tie the arguments together.
-    resultant_force = pool.map(func, bodies) # Perform the calculation on all bodies concurrently.
-    pool.close()
-    pool.join()
-    # return [val.getMagnitude() for val in resultant_force]
+def generate(bodies, positionData):
+    idx = 0
+    noOfProcesses = len(bodies)
+    while idx <= 10000:
 
-
-
+        for num, body in enumerate(bodies):
+            temp_body = calculate_resultant_force(bodies, body)
+            bodies[num] = temp_body
+            x = positionData[num][0]
+            x.append(temp_body.position.get()[0])
+            y = positionData[num][1]
+            y.append(temp_body.position.get()[1])
+            positionData[num] = [x, y]
+        idx += 1
 
 
 def animate(i):
-    global x #Use global to avoid the use of 'x' in the namespace of animate()
-    global y
+    global positionData
     global pos
     global main
     ax1.clear()
-    ax1.plot(x[0:pos], y[0:pos]) #Plot only up to a certain point of the arrays.
+    for body in positionData:
+        ax1.plot(body[0][0:pos], body[1][0:pos]) #Plot only up to a certain point of the arrays.
     pos += 1
     # main.log("x: {} ¦ y: {}".format(str(x[pos]),str(y[pos])))
-    main.updateProgressBar((pos/1000)*100)
+    # main.updateProgressBar((pos/1000)*100)
 
 class Main(QMainWindow, Ui_MainWindow): # Go to Form -> View Code in QTDesigner to see structure of GUI.
     def __init__(self, ):
@@ -97,11 +102,15 @@ if __name__ == "__main__":
     main = Main()
 
     fig = Figure()
+
     ax1 = fig.add_subplot(1, 1, 1)
+    axes = fig.gca()
+    axes.set_xlim([-150*(10**9), 150*(10**9)])
+    axes.set_ylim([-150*(10**9), 150*(10**9)])
 
     main.addMpl(fig) # Add figure to the GUI
     main.addToolBar() # Add toolbar to the GUI; MUST BE CALLED AFTER .addMpl()
-    #main.showMaximized() #Show GUI
+    # main.showMaximized() #Show GUI
     main.show()
 
     # Configure Earth Body
@@ -126,30 +135,26 @@ if __name__ == "__main__":
     main.log(str(Sun))
 
     #Configure third Body
-    Mars = Body()
-    Mars.id = 3
-    Mars.name = "Mars"
-    Mars.mass = 4.02 * (10**22)
-    Mars.position.set(80*(10**9), 20*(10**9))
-    Mars.velocity.set(0,0)
-    Mars.type = "Planet"
-    main.log(str(Mars))
+    # Mars = Body()
+    # Mars.id = 3
+    # Mars.name = "Mars"
+    # Mars.mass = 4.02 * (10**22)
+    # Mars.position.set(80*(10**9), 20*(10**9))
+    # Mars.velocity.set(0,0)
+    # Mars.type = "Planet"
+    # main.log(str(Mars))
 
-    bodies = [Sun, Earth, Mars]
-    positionData = []
-
+    bodies = [Sun, Earth]
+    manager = Manager()
+    positionData = manager.list()
     for body in bodies:
-        positionData.append([Array('d', 100000), Array('d', 100000)])
+        positionData.append([[], []])
 
-    parent_comm, child_comm = Pipe()
-
-    print( generate(bodies, positionData, child_comm) )
-
-    #p = Process(target=generate, args=(bodies, positionData, child_comm,))
+    p = Process(target=generate, args=(bodies, positionData,))
     # Must have trailing comma after final argument.
 
-    #p.start() #Spawn new process.
-
-    #ani = animation.FuncAnimation(fig, animate, interval=50) # Create animation updating every 3ms.
+    p.start() #Spawn new process.
+    pos = 0
+    ani = animation.FuncAnimation(fig, animate, interval=0.1) # Create animation updating every 2ms.
     sys.exit(app.exec_())
 

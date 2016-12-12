@@ -50,4 +50,18 @@ def calculate_resultant_force(all_bodies, req_body):
     for body in all_bodies:
         if body.id != req_body.id:
             resultant_force.add(force(body, req_body))
-    return resultant_force
+    req_body.updateSelf(resultant_force)
+    return req_body
+
+def return_positions(body):
+    pos = body.position.get()
+    # body_index = 0
+    # for item in bodies:
+    #     if body.id == item.id:
+    #         break
+    #     body_index += 1
+    # positionData[body_index][0].append(pos[0])
+    # positionData[body_index][1].append(pos[1])
+    # return positionData
+
+    return pos

@@ -1,7 +1,7 @@
 # Orbital Simulation Practical Project
 # Rohit Prasad
 # 2016-2017
-# Last changed on 10/12/2016
+# Last changed on 12/12/2016
 
 import logging
 from src.vector import Vector #imports the vector class from Vector.py
@@ -29,10 +29,12 @@ class Body(object):
                "Velocity: {} \n" \
                "-----------".format(self.name, self.mass, self.position, self.velocity)
 
-    def updateSelf(self, force, dt):
+    def updateSelf(self, force, dt=8000):
         self.acceleration = force.divide(self.mass)
-        self.velocity = self.velocity.add(self.acceleration.multiply(dt))
-        self.position = self.position.add(self.velocity.multiply(dt))
+
+        self.velocity.add(self.acceleration.multiply(dt))
+
+        self.position.add(self.velocity.multiply(dt))
 
     #Getter functions. @property avoids the need to use the getter and setter function calls when using it in code.
     @property

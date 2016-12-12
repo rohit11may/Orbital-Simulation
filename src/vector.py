@@ -1,7 +1,7 @@
 # Orbital Simulation Practical Project
 # Rohit Prasad
 # 2016-2017
-# Last changed on 10/12/2016
+# Last changed on 12/12/2016
 
 
 from math import (atan, degrees)
@@ -58,16 +58,18 @@ class Vector(object):
     # Divides a vector by a scalar, verifies the division is between vector and scalar.
     def divide(self, value):
         if isinstance(value, (float, int)):
-            self.x /= value
-            self.y /= value
+            ans = Vector()
+            ans.set(self.x / value, self.y / value)
+            return ans
         else:
             logging.warning("Division must be with scalar: Value = {} ¦ Type = {}".format(value, type(value)))
 
     # Multiplies a vector by a scalar, verifies the multiplication is between vector and scalar
     def multiply(self, value):
         if isinstance(value, (float, int)):
-            self.x *= value
-            self.y *= value
+            ans = Vector()
+            ans.set(self.x * value, self.y * value)
+            return ans
         else:
             logging.warning("Multiplication must be with scalar: Value = {} ¦ Type = {}".format(value, type(value)))
 
