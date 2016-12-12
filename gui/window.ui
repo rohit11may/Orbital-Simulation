@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>910</width>
+    <width>873</width>
     <height>761</height>
    </rect>
   </property>
@@ -34,7 +34,7 @@
         <property name="minimumSize">
          <size>
           <width>0</width>
-          <height>700</height>
+          <height>550</height>
          </size>
         </property>
         <property name="maximumSize">
@@ -70,6 +70,9 @@
            <property name="rightMargin">
             <number>11</number>
            </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
            <item>
             <widget class="QTabWidget" name="tab_widget">
              <property name="sizePolicy">
@@ -81,13 +84,13 @@
              <property name="minimumSize">
               <size>
                <width>324</width>
-               <height>400</height>
+               <height>380</height>
               </size>
              </property>
              <property name="maximumSize">
               <size>
                <width>350</width>
-               <height>16777215</height>
+               <height>1000</height>
               </size>
              </property>
              <property name="currentIndex">
@@ -139,7 +142,7 @@
                     <x>0</x>
                     <y>0</y>
                     <width>297</width>
-                    <height>497</height>
+                    <height>334</height>
                    </rect>
                   </property>
                   <property name="minimumSize">
@@ -168,7 +171,7 @@
                  </property>
                  <property name="minimumSize">
                   <size>
-                   <width>1</width>
+                   <width>0</width>
                    <height>0</height>
                   </size>
                  </property>
@@ -181,7 +184,7 @@
                     <x>0</x>
                     <y>0</y>
                     <width>298</width>
-                    <height>497</height>
+                    <height>334</height>
                    </rect>
                   </property>
                  </widget>
@@ -209,6 +212,12 @@
            </property>
            <item>
             <widget class="QPushButton" name="pushButton_2">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>Import Body</string>
              </property>
@@ -216,6 +225,12 @@
            </item>
            <item>
             <widget class="QPushButton" name="pushButton">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="text">
               <string>Create New Body</string>
              </property>
@@ -224,33 +239,10 @@
           </layout>
          </item>
          <item>
-          <layout class="QHBoxLayout" name="loading_bar">
-           <property name="spacing">
-            <number>0</number>
-           </property>
-           <property name="sizeConstraint">
-            <enum>QLayout::SetMaximumSize</enum>
-           </property>
-           <property name="leftMargin">
-            <number>10</number>
-           </property>
-           <property name="rightMargin">
-            <number>10</number>
-           </property>
-           <item>
-            <widget class="QProgressBar" name="loading_bar_widget">
-             <property name="value">
-              <number>24</number>
-             </property>
-             <property name="textVisible">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item>
           <layout class="QVBoxLayout" name="console">
+           <property name="spacing">
+            <number>1</number>
+           </property>
            <property name="sizeConstraint">
             <enum>QLayout::SetMaximumSize</enum>
            </property>
@@ -270,7 +262,7 @@
            <item>
             <widget class="QScrollArea" name="console_box">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Maximum" vsizetype="Minimum">
+              <sizepolicy hsizetype="Maximum" vsizetype="MinimumExpanding">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -284,7 +276,7 @@
              <property name="maximumSize">
               <size>
                <width>350</width>
-               <height>16777215</height>
+               <height>400</height>
               </size>
              </property>
              <property name="widgetResizable">
@@ -296,7 +288,7 @@
                 <x>0</x>
                 <y>0</y>
                 <width>318</width>
-                <height>69</height>
+                <height>265</height>
                </rect>
               </property>
              </widget>
@@ -339,6 +331,38 @@
           <widget class="QWidget" name="mplwindow" native="true">
            <layout class="QVBoxLayout" name="mplvl"/>
           </widget>
+         </item>
+         <item>
+          <layout class="QHBoxLayout" name="toolbar_layout">
+           <item>
+            <layout class="QVBoxLayout" name="toolbar_container"/>
+           </item>
+           <item>
+            <widget class="QProgressBar" name="loading_bar_widget">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>400</width>
+               <height>0</height>
+              </size>
+             </property>
+             <property name="value">
+              <number>24</number>
+             </property>
+             <property name="textVisible">
+              <bool>false</bool>
+             </property>
+             <property name="invertedAppearance">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </item>
          <item>
           <layout class="QHBoxLayout" name="sim_btn">
@@ -390,7 +414,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>910</width>
+     <width>873</width>
      <height>21</height>
     </rect>
    </property>
