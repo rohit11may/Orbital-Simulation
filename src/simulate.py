@@ -11,28 +11,41 @@ from matplotlib.backends.backend_qt4agg import (
     NavigationToolbar2QT as NavigationToolbar)
 
 # Multiprocessing module.
-import multiprocessing
+from multiprocessing import Process, Array, Pipe, Pool
 
 # Matplotlib
 import matplotlib.animation as animation
 from matplotlib.figure import Figure
 
-# Others
-from random import randint
+# Local
 from src.body import Body
+from src.orbitmath import calculate_resultant_force
 from src.vector import Vector
+
+# Others
 import sys
 import logging
+from functools import partial # To tie arguments together for pooling.
 
-
+logging.basicConfig(format='%(asctime)s.%(msecs)03d // %(message)s',
+                    filename="..//logs//logfile.log",
+                    datefmt='%H:%M:%S',
+                    filemode='w',
+                    level=logging.DEBUG)
 
 Ui_MainWindow, QMainWindow = loadUiType('..//GUI//window.ui') # Load UI file from GUI folder.
 
 
-def generate(x, y):
-    for idx, n in enumerate(y):
-        y[idx] = randint(0, 10) # Generates a random number from 1 to 10.
-        x[idx] = idx
+
+def generate(bodies, positionData, comm):
+    pool = Pool(processes=len(bodies))
+    func = partial(calculate_resultant_force, bodies)
+    resultant_force = pool.map(func, bodies)
+    pool.close()
+    pool.join()
+    return resultant_force
+
+
 
 def animate(i):
     global x #Use global to avoid the use of 'x' in the namespace of animate()
@@ -53,7 +66,7 @@ class Main(QMainWindow, Ui_MainWindow): # Go to Form -> View Code in QTDesigner 
         # Setup console box
         self.textEdit = QtGui.QTextEdit()
         self.console_box.setWidget(self.textEdit)
-        logging.info("Setup console box.")
+        logging.info("Setup Console Box")
 
     def addMpl(self, fig):
         self.canvas = FigureCanvas(fig) # Create canvas for figure.
@@ -70,7 +83,7 @@ class Main(QMainWindow, Ui_MainWindow): # Go to Form -> View Code in QTDesigner 
 
     def log(self, text):
         self.textEdit.append(text)
-        logging.info(text)
+        logging.debug(text)
 
     def updateProgressBar(self, value):
         self.loading_bar_widget.setValue(value)
@@ -86,7 +99,7 @@ if __name__ == "__main__":
 
     main.addMpl(fig) # Add figure to the GUI
     main.addToolBar() # Add toolbar to the GUI; MUST BE CALLED AFTER .addMpl()
-    main.showMaximized() #Show GUI
+    #main.showMaximized() #Show GUI
     main.show()
 
     # Configure Earth Body
@@ -94,8 +107,7 @@ if __name__ == "__main__":
     Earth.id = 1
     Earth.name = "Earth"
     Earth.mass = 5.98 * (10 ** 24)
-    Earth.position = Vector()
-    Earth.position.set(150000000000, 0)
+    Earth.position.set(150*(10**9), 0)
     Earth.velocity = Vector()
     Earth.velocity.set(0, 29.8 * (10 ** 3))
     Earth.type = "Planet"
@@ -103,28 +115,39 @@ if __name__ == "__main__":
 
     # Configure Sun Body
     Sun = Body()
-    Sun.id = 1
+    Sun.id = 2
     Sun.name = "Sun"
     Sun.mass = 1.989 * (10 ** 30)
-    Sun.position = Vector()
     Sun.position.set(0,0)
-    Sun.velocity = Vector()
     Sun.velocity.set(0, 0)
     Sun.type = "Star"
-
-    bodies = [Sun, Earth]
     main.log(str(Sun))
+
+    #Configure third Body
+    Mars = Body()
+    Mars.id = 3
+    Mars.name = "Mars"
+    Mars.mass = 4.02 * (10**22)
+    Mars.position.set(80*(10**9), 20*(10**9))
+    Mars.velocity.set(0,0)
+    Mars.type = "Planet"
+    main.log(str(Mars))
+
+    bodies = [Sun, Earth, Mars]
     positionData = []
 
     for body in bodies:
-        positionData.append([multiprocessing.Array('d', 10000), multiprocessing.Array('d', 10000)])
+        positionData.append([Array('d', 100000), Array('d', 100000)])
 
+    parent_comm, child_comm = Pipe()
 
-    p = multiprocessing.Process(target=generate, args=(bodies, positionData,))
+    print( generate(bodies, positionData, child_comm) )
+
+    #p = Process(target=generate, args=(bodies, positionData, child_comm,))
     # Must have trailing comma after final argument.
 
-    p.start() #Spawn new process.
+    #p.start() #Spawn new process.
 
-    ani = animation.FuncAnimation(fig, animate, interval=50) # Create animation updating every 3ms.
+    #ani = animation.FuncAnimation(fig, animate, interval=50) # Create animation updating every 3ms.
     sys.exit(app.exec_())
 

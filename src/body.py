@@ -6,7 +6,11 @@
 import logging
 from src.vector import Vector #imports the vector class from Vector.py
 
-
+logging.basicConfig(format='%(asctime)s.%(msecs)03d // %(message)s',
+                    filename="..//logs//logfile.log",
+                    datefmt='%H:%M:%S',
+                    filemode='w',
+                    level=logging.DEBUG)
 
 class Body(object):
     def __init__(self):

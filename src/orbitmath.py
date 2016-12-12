@@ -4,10 +4,15 @@
 # Last changed on 11/12/2016
 
 import logging
-from src.vector import Vector
 from src.body import Body
 
 G = 6.674 * (10**-11)
+
+logging.basicConfig(format='%(asctime)s.%(msecs)03d // %(message)s',
+                    filename="..//logs//logfile.log",
+                    datefmt='%H:%M:%S',
+                    filemode='w',
+                    level=logging.DEBUG)
 
 def distance(a, b):
     if isinstance(a, Body) and isinstance(b, Body):
@@ -26,4 +31,14 @@ def force(a, b):
         logging.debug("Force returned: {}".format(str(force_val)))
         return force_val
     else:
-        logging.WARNING("Force calculation is not between two bodies: {} / {}".format(a, b))
+        logging.warning("Force calculation is not between two bodies: {} / {}".format(a, b))
+
+
+def calculate_resultant_force(all_bodies, req_body):
+    resultant_force = 0
+    # print("ALL BODIES: {} \n"
+    #       "REQ BODY: {}".format(all_bodies, req_body))
+    for body in all_bodies:
+        if body.id != req_body.id:
+            resultant_force += force(body, req_body)
+    return resultant_force

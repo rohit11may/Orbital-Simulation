@@ -14,7 +14,7 @@ logging.basicConfig(format='%(asctime)s.%(msecs)03d // %(message)s',
                     filename="..//logs//logfile.log",
                     datefmt='%H:%M:%S',
                     filemode='w',
-                    level=logging.WARNING)
+                    level=logging.DEBUG)
 
 # When creating a vector object, it instantiates as a zero vector.
 # Use setter method to assign values.
