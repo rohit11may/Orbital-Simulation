@@ -25,15 +25,19 @@ class Vector(object):
         self.x = 0
         self.y = 0
 
+    def __repr__(self):
+        return("x: {} ¦ y: {}".format(str(self.x), str(self.y)))
+
     def get(self):
         return (self.x, self.y)
 
     def set(self, x, y):
-        if isinstance(x, float) and isinstance(y, float): #Ensures that x and y are integers, when set.
+        if isinstance(x, (float, int)) and isinstance(y, (float, int)): #Ensures that x and y are floats, when set.
             self.x = x
             self.y = y
         else:
-            logging.warning("Coords must be floats: x = {} y = {} ¦ xTyp = {} yTyp = {}".format(x,y,type(x),type(y)))
+            logging.warning("Co-ords must be floats: x = {} y = {} ¦ xTyp = {} yTyp = {}".format(str(x),str(y)
+                                                                                                ,type(x),type(y)))
 
     #Returns magnitude of vector object.
     def getMagnitude(self):
@@ -53,7 +57,7 @@ class Vector(object):
 
     # Divides a vector by a scalar, verifies the division is between vector and scalar.
     def divide(self, value):
-        if isinstance(value, float):
+        if isinstance(value, (float, int)):
             self.x /= value
             self.y /= value
         else:
@@ -61,7 +65,7 @@ class Vector(object):
 
     # Multiplies a vector by a scalar, verifies the multiplication is between vector and scalar
     def multiply(self, value):
-        if isinstance(value, float):
+        if isinstance(value, (float, int)):
             self.x *= value
             self.y *= value
         else:

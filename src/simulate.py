@@ -19,9 +19,11 @@ from matplotlib.figure import Figure
 
 # Others
 from random import randint
+from src.body import Body
+from src.vector import Vector
 import sys
 import logging
-import time
+
 
 
 Ui_MainWindow, QMainWindow = loadUiType('..//GUI//window.ui') # Load UI file from GUI folder.
@@ -40,7 +42,7 @@ def animate(i):
     ax1.clear()
     ax1.plot(x[0:pos], y[0:pos]) #Plot only up to a certain point of the arrays.
     pos += 1
-    main.log("x: {} ¦ y: {}".format(str(x[pos]),str(y[pos])))
+    # main.log("x: {} ¦ y: {}".format(str(x[pos]),str(y[pos])))
     main.updateProgressBar((pos/1000)*100)
 
 class Main(QMainWindow, Ui_MainWindow): # Go to Form -> View Code in QTDesigner to see structure of GUI.
@@ -51,16 +53,20 @@ class Main(QMainWindow, Ui_MainWindow): # Go to Form -> View Code in QTDesigner 
         # Setup console box
         self.textEdit = QtGui.QTextEdit()
         self.console_box.setWidget(self.textEdit)
+        logging.info("Setup console box.")
 
     def addMpl(self, fig):
         self.canvas = FigureCanvas(fig) # Create canvas for figure.
+        fig.set_facecolor('white')
         self.mplvl.addWidget(self.canvas) # Add canvas as widget to mplvl layout in window.ui file.
         self.canvas.draw() # Draw canvas
+        logging.info("Added Matplotlib graph.")
 
     def addToolBar(self):
         # Setup toolbar
         self.toolbar = NavigationToolbar(self.canvas, self.mplwindow, coordinates=True) #Instantiate toolbar.
         self.toolbar_container.addWidget(self.toolbar) #Add toolbar to layout.
+        logging.info("Added toolbar")
 
     def log(self, text):
         self.textEdit.append(text)
@@ -83,14 +89,42 @@ if __name__ == "__main__":
     main.showMaximized() #Show GUI
     main.show()
 
-    y = multiprocessing.Array('d', 1000) # Created array in the shared memory space.
-    x = multiprocessing.Array('d', 1000) # Created array in the shared memory space.
-    pos = 0
+    # Configure Earth Body
+    Earth = Body()
+    Earth.id = 1
+    Earth.name = "Earth"
+    Earth.mass = 5.98 * (10 ** 24)
+    Earth.position = Vector()
+    Earth.position.set(150000000000, 0)
+    Earth.velocity = Vector()
+    Earth.velocity.set(0, 29.8 * (10 ** 3))
+    Earth.type = "Planet"
+    main.log(str(Earth))
 
-    p = multiprocessing.Process(target=generate, args=(x, y,)) # Must have trailing comma after final argument.
+    # Configure Sun Body
+    Sun = Body()
+    Sun.id = 1
+    Sun.name = "Sun"
+    Sun.mass = 1.989 * (10 ** 30)
+    Sun.position = Vector()
+    Sun.position.set(0,0)
+    Sun.velocity = Vector()
+    Sun.velocity.set(0, 0)
+    Sun.type = "Star"
+
+    bodies = [Sun, Earth]
+    main.log(str(Sun))
+    positionData = []
+
+    for body in bodies:
+        positionData.append([multiprocessing.Array('d', 10000), multiprocessing.Array('d', 10000)])
+
+
+    p = multiprocessing.Process(target=generate, args=(bodies, positionData,))
+    # Must have trailing comma after final argument.
+
     p.start() #Spawn new process.
 
     ani = animation.FuncAnimation(fig, animate, interval=50) # Create animation updating every 3ms.
     sys.exit(app.exec_())
-
 

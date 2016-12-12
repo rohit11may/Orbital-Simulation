@@ -18,6 +18,13 @@ class Body(object):
         self._type = "" #Type initialised to empty string.
         self._acceleration = Vector() # Acceleration initialised to 0
 
+    def __repr__(self):
+        return "Name: {} \n" \
+               "Mass: {} \n" \
+               "Position: {} \n" \
+               "Velocity: {} \n" \
+               "-----------".format(self.name, self.mass, self.position, self.velocity)
+
     def updateSelf(self, force, dt):
         self.acceleration = force.divide(self.mass)
         self.velocity = self.velocity.add(self.acceleration.multiply(dt))
