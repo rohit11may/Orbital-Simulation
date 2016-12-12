@@ -38,12 +38,14 @@ Ui_MainWindow, QMainWindow = loadUiType('..//GUI//window.ui') # Load UI file fro
 
 
 def generate(bodies, positionData, comm):
-    pool = Pool(processes=len(bodies))
-    func = partial(calculate_resultant_force, bodies)
-    resultant_force = pool.map(func, bodies)
+    pool = Pool(processes=len(bodies)) # Create a process for each body.
+    func = partial(calculate_resultant_force, bodies) # Tie the arguments together.
+    resultant_force = pool.map(func, bodies) # Perform the calculation on all bodies concurrently.
     pool.close()
     pool.join()
-    return resultant_force
+    # return [val.getMagnitude() for val in resultant_force]
+
+
 
 
 
