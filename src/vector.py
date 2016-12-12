@@ -11,7 +11,7 @@ import logging
 # Filemode = 'w' ensures the log file is reset on execution.
 
 logging.basicConfig(format='%(asctime)s.%(msecs)03d // %(message)s',
-                    filename="logfile.log",
+                    filename="..//logs//logfile.log",
                     datefmt='%H:%M:%S',
                     filemode='w',
                     level=logging.WARNING)
@@ -66,3 +66,4 @@ class Vector(object):
             self.y *= value
         else:
             logging.warning("Multiplication must be with scalar: Value = {} ¦ Type = {}".format(value, type(value)))
+

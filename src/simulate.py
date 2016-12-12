@@ -20,9 +20,11 @@ from matplotlib.figure import Figure
 # Others
 from random import randint
 import sys
+import time
 
 
 Ui_MainWindow, QMainWindow = loadUiType('..//GUI//window.ui') # Load UI file from GUI folder.
+
 
 def generate(x, y):
     for idx, n in enumerate(y):
@@ -33,24 +35,34 @@ def animate(i):
     global x #Use global to avoid the use of 'x' in the namespace of animate()
     global y
     global pos
+    global main
     ax1.clear()
     ax1.plot(x[0:pos], y[0:pos]) #Plot only up to a certain point of the arrays.
     pos += 1
+    main.log("x: {} ¦ y: {}".format(str(x[pos]),str(y[pos])))
+    main.updateProgressBar(pos)
 
 class Main(QMainWindow, Ui_MainWindow): # Go to Form -> View Code in QTDesigner to see structure of GUI.
     def __init__(self, ):
         super(Main, self).__init__()
         self.setupUi(self)
+        self.textEdit = QtGui.QTextEdit()
+        self.console_box.setWidget(self.textEdit)
 
     def addMpl(self, fig):
         self.canvas = FigureCanvas(fig) # Create canvas for figure.
-        self.mplvl.addWidget(self.canvas) # Add canvas as widget to mplvl
+        self.mplvl.addWidget(self.canvas) # Add canvas as widget to mplvl layout in window.ui file.
         self.canvas.draw() # Draw canvas
 
     def addToolBar(self):
         self.toolbar = NavigationToolbar(self.canvas, self.mplwindow, coordinates=True) #Instantiate toolbar.
         self.mplvl.addWidget(self.toolbar) #Add toolbar to layout.
 
+    def log(self, text):
+        self.textEdit.append(text)
+
+    def updateProgressBar(self, value):
+        self.loading_bar_widget.setValue(value)
 
 
 if __name__ == "__main__":
@@ -64,14 +76,14 @@ if __name__ == "__main__":
     main.addToolBar() # Add toolbar to the GUI
     main.show() #Show GUI
 
-    y = multiprocessing.Array('d', 1000) # Created array in the shared memory space.
-    x = multiprocessing.Array('d', 1000) # Created array in the shared memory space.
+    y = multiprocessing.Array('d', 100) # Created array in the shared memory space.
+    x = multiprocessing.Array('d', 100) # Created array in the shared memory space.
     pos = 0
 
     p = multiprocessing.Process(target=generate, args=(x, y,)) # Must have trailing comma after final argument.
     p.start() #Spawn new process.
 
-    ani = animation.FuncAnimation(fig, animate, interval=3) # Create animation updating every 3ms.
-
-    #p.join()
+    ani = animation.FuncAnimation(fig, animate, interval=50) # Create animation updating every 3ms.
     sys.exit(app.exec_())
+
+
