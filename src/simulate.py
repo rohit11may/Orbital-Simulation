@@ -58,7 +58,7 @@ def animate(i):
     global positionData
     global pos
     global main
-    ax1.clear()
+    # ax1.clear()
     for body in positionData:
         ax1.plot(body[0][0:pos], body[1][0:pos]) #Plot only up to a certain point of the arrays.
     pos += 1
@@ -102,11 +102,14 @@ if __name__ == "__main__":
     main = Main()
 
     fig = Figure()
-
     ax1 = fig.add_subplot(1, 1, 1)
-    axes = fig.gca()
-    axes.set_xlim([-150*(10**9), 150*(10**9)])
-    axes.set_ylim([-150*(10**9), 150*(10**9)])
+
+    ax1.plot(-175*(10**9),-175*(10**9))
+    ax1.plot(175*(10**9),175*(10**9))
+    # ax1.autoscale_view(False, False, False)
+    # axes = fig.gca()
+    # axes.set_xlim([-150*(10**9), 150*(10**9)])
+    # axes.set_ylim([-150*(10**9), 150*(10**9)])
 
     main.addMpl(fig) # Add figure to the GUI
     main.addToolBar() # Add toolbar to the GUI; MUST BE CALLED AFTER .addMpl()
@@ -117,8 +120,8 @@ if __name__ == "__main__":
     Earth = Body()
     Earth.id = 1
     Earth.name = "Earth"
-    Earth.mass = 5.98 * (10 ** 24)
-    Earth.position.set(150*(10**9), 0)
+    Earth.mass = 5.972 * (10 ** 24)
+    Earth.position.set(149600000000, 0)
     Earth.velocity = Vector()
     Earth.velocity.set(0, 29.8 * (10 ** 3))
     Earth.type = "Planet"
@@ -130,11 +133,11 @@ if __name__ == "__main__":
     Sun.name = "Sun"
     Sun.mass = 1.989 * (10 ** 30)
     Sun.position.set(0,0)
-    Sun.velocity.set(0, 0)
+    Sun.velocity.set(0,0)
     Sun.type = "Star"
     main.log(str(Sun))
 
-    #Configure third Body
+    # Configure third Body
     # Mars = Body()
     # Mars.id = 3
     # Mars.name = "Mars"
@@ -155,6 +158,6 @@ if __name__ == "__main__":
 
     p.start() #Spawn new process.
     pos = 0
-    ani = animation.FuncAnimation(fig, animate, interval=0.1) # Create animation updating every 2ms.
+    ani = animation.FuncAnimation(fig, animate, interval=0) # Create animation updating every 2ms.
     sys.exit(app.exec_())
 

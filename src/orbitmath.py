@@ -33,7 +33,7 @@ def force(a, b):
         force_val = (G * a.mass * b.mass) / (dist.getMagnitude() ** 2)
         dx, dy = dist.get()
 
-        theta = atan2(dx, dy)
+        theta = atan2(dy, dx)
 
         Fx, Fy = force_val * cos(theta), force_val*sin(theta)
         force_val = Vector()
