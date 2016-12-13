@@ -55,12 +55,15 @@ def generate(bodies, positionData):
 
 def animate(i):
     global positionData
-    global pos
+    global front
     global main
+    global back
     ax1.clear()
     for body in positionData:
-        ax1.plot(body[0][0:pos], body[1][0:pos]) #Plot only up to a certain point of the arrays.
-    pos += 1
+        back2 = max(0, back)
+        ax1.plot(body[0][back2:front], body[1][back2:front]) #Plot only up to a certain point of the arrays.
+    front += 1
+    back = front - 80
 
 class Main(QMainWindow, Ui_MainWindow): # Go to Form -> View Code in QTDesigner to see structure of GUI.
     def __init__(self, ):
@@ -110,7 +113,7 @@ if __name__ == "__main__":
 
     main.addMpl(fig) # Add figure to the GUI
     main.addToolBar() # Add toolbar to the GUI; MUST BE CALLED AFTER .addMpl()
-    # main.showMaximized() #Show GUI
+    main.showMaximized() #Show GUI
     main.show()
 
     # Configure Earth Body
@@ -154,8 +157,16 @@ if __name__ == "__main__":
     Halley.type = "Comet"
     main.log(str(Halley))
 
+    Jupiter = Body()
+    Jupiter.id = 5
+    Jupiter.name = "Jupiter"
+    Jupiter.mass = 1.90e27
+    Jupiter.position.set(5.455 * AU, 0)
+    Jupiter.velocity.set(0, 12.44e3)
+    Jupiter.type = "Planet"
+    main.log(str(Jupiter))
 
-    bodies = [Sun, Earth, Mars, Halley]
+    bodies = [Sun, Earth, Mars, Halley, Jupiter]
     manager = Manager()
     positionData = manager.list()
     for body in bodies:
@@ -165,7 +176,8 @@ if __name__ == "__main__":
     # Must have trailing comma after final argument.
 
     p.start() #Spawn new process.
-    pos = 0
+    front = 0
+    back = front-50
     ani = animation.FuncAnimation(fig, animate, interval=0) # Create animation updating every 2ms.
     sys.exit(app.exec_())
 

@@ -48,7 +48,7 @@ def calculate_resultant_force(all_bodies, req_body):
     resultant_force = Vector()
 
     for body in all_bodies:
-        if body.id != req_body.id and ((body.mass / req_body.mass) > 1e5):
+        if body.id != req_body.id and ((body.mass / req_body.mass) > 1e2):
             resultant_force.add(force(body, req_body))
     req_body.updateSelf(resultant_force)
     return req_body

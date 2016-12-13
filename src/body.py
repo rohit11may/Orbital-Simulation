@@ -29,7 +29,7 @@ class Body(object):
                "Velocity: {} \n" \
                "-----------".format(self.name, self.mass, self.position, self.velocity)
 
-    def updateSelf(self, force, dt=100000):
+    def updateSelf(self, force, dt=1000000):
         self.acceleration = force.divide(self.mass)
 
         self.velocity.add(self.acceleration.multiply(dt))
