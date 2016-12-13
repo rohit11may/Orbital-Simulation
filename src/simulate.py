@@ -42,7 +42,6 @@ def generate(bodies, positionData):
     idx = 0
     noOfProcesses = len(bodies)
     while idx <= 10000:
-
         for num, body in enumerate(bodies):
             temp_body = calculate_resultant_force(bodies, body)
             bodies[num] = temp_body
@@ -62,8 +61,6 @@ def animate(i):
     for body in positionData:
         ax1.plot(body[0][0:pos], body[1][0:pos]) #Plot only up to a certain point of the arrays.
     pos += 1
-    # main.log("x: {} ¦ y: {}".format(str(x[pos]),str(y[pos])))
-    # main.updateProgressBar((pos/1000)*100)
 
 class Main(QMainWindow, Ui_MainWindow): # Go to Form -> View Code in QTDesigner to see structure of GUI.
     def __init__(self, ):
@@ -103,7 +100,7 @@ if __name__ == "__main__":
 
     fig = Figure()
     ax1 = fig.add_subplot(1, 1, 1)
-
+    ax1.axis('equal')
     ax1.plot(-175*(10**9),-175*(10**9))
     ax1.plot(175*(10**9),175*(10**9))
     # ax1.autoscale_view(False, False, False)
