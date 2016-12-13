@@ -8,7 +8,7 @@ from math import atan2, cos, sin
 from src.body import Body
 from src.vector import Vector
 
-G = 6.674 * (10**-11)
+G = 6.674e-11
 
 logging.basicConfig(format='%(asctime)s.%(msecs)03d // %(message)s',
                     filename="..//logs//logfile.log",
@@ -48,20 +48,11 @@ def calculate_resultant_force(all_bodies, req_body):
     resultant_force = Vector()
 
     for body in all_bodies:
-        if body.id != req_body.id:
+        if body.id != req_body.id and ((body.mass / req_body.mass) > 1e5):
             resultant_force.add(force(body, req_body))
     req_body.updateSelf(resultant_force)
     return req_body
 
 def return_positions(body):
     pos = body.position.get()
-    # body_index = 0
-    # for item in bodies:
-    #     if body.id == item.id:
-    #         break
-    #     body_index += 1
-    # positionData[body_index][0].append(pos[0])
-    # positionData[body_index][1].append(pos[1])
-    # return positionData
-
     return pos

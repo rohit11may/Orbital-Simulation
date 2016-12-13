@@ -27,7 +27,7 @@ import sys
 import logging
 import time
 from functools import partial # To tie arguments together for pooling.
-
+AU = 149598e6
 logging.basicConfig(format='%(asctime)s.%(msecs)03d // %(message)s',
                     filename="..//logs//logfile.log",
                     datefmt='%H:%M:%S',
@@ -58,7 +58,7 @@ def animate(i):
     global positionData
     global pos
     global main
-    # ax1.clear()
+    ax1.clear()
     for body in positionData:
         ax1.plot(body[0][0:pos], body[1][0:pos]) #Plot only up to a certain point of the arrays.
     pos += 1
@@ -131,23 +131,34 @@ if __name__ == "__main__":
     Sun = Body()
     Sun.id = 2
     Sun.name = "Sun"
-    Sun.mass = 1.989 * (10 ** 30)
+    Sun.mass = 1.989e30
     Sun.position.set(0,0)
     Sun.velocity.set(0,0)
     Sun.type = "Star"
     main.log(str(Sun))
 
     # Configure third Body
-    # Mars = Body()
-    # Mars.id = 3
-    # Mars.name = "Mars"
-    # Mars.mass = 4.02 * (10**22)
-    # Mars.position.set(80*(10**9), 20*(10**9))
-    # Mars.velocity.set(0,0)
-    # Mars.type = "Planet"
-    # main.log(str(Mars))
+    Mars = Body()
+    Mars.id = 3
+    Mars.name = "Mars"
+    Mars.mass = 4.02e22
+    Mars.position.set(227.9e9, 0)
+    Mars.velocity.set(0,24.1308e3)
+    Mars.type = "Planet"
+    main.log(str(Mars))
 
-    bodies = [Sun, Earth]
+    # Configure Halley's comet
+    Halley = Body()
+    Halley.id = 4
+    Halley.name = "Halley"
+    Halley.mass = 2.2e14
+    Halley.velocity.set(-50e3, 0)
+    Halley.position.set(0, 88e9)
+    Halley.type = "Comet"
+    main.log(str(Halley))
+
+
+    bodies = [Sun, Earth, Mars, Halley]
     manager = Manager()
     positionData = manager.list()
     for body in bodies:
