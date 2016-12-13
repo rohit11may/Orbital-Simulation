@@ -52,7 +52,3 @@ def calculate_resultant_force(all_bodies, req_body):
             resultant_force.add(force(body, req_body))
     req_body.updateSelf(resultant_force)
     return req_body
-
-def return_positions(body):
-    pos = body.position.get()
-    return pos

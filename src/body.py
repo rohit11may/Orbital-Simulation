@@ -29,11 +29,9 @@ class Body(object):
                "Velocity: {} \n" \
                "-----------".format(self.name, self.mass, self.position, self.velocity)
 
-    def updateSelf(self, force, dt=1000000):
+    def updateSelf(self, force, dt=90e3):
         self.acceleration = force.divide(self.mass)
-
         self.velocity.add(self.acceleration.multiply(dt))
-
         self.position.add(self.velocity.multiply(dt))
 
     #Getter functions. @property avoids the need to use the getter and setter function calls when using it in code.

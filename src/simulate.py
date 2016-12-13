@@ -11,7 +11,7 @@ from matplotlib.backends.backend_qt4agg import (
     NavigationToolbar2QT as NavigationToolbar)
 
 # Multiprocessing module.
-from multiprocessing import Process, Array, Pipe, Pool, Manager
+from multiprocessing import Process, Manager
 
 # Matplotlib
 import matplotlib.animation as animation
@@ -19,14 +19,14 @@ from matplotlib.figure import Figure
 
 # Local
 from src.body import Body
-from src.orbitmath import calculate_resultant_force, return_positions
+from src.orbitmath import calculate_resultant_force
 from src.vector import Vector
 
 # Others
 import sys
 import logging
-import time
-from functools import partial # To tie arguments together for pooling.
+
+
 AU = 149598e6
 logging.basicConfig(format='%(asctime)s.%(msecs)03d // %(message)s',
                     filename="..//logs//logfile.log",
@@ -39,9 +39,7 @@ Ui_MainWindow, QMainWindow = loadUiType('..//GUI//window.ui') # Load UI file fro
 
 
 def generate(bodies, positionData):
-    idx = 0
-    noOfProcesses = len(bodies)
-    while idx <= 10000:
+    while True:
         for num, body in enumerate(bodies):
             temp_body = calculate_resultant_force(bodies, body)
             bodies[num] = temp_body
@@ -50,20 +48,24 @@ def generate(bodies, positionData):
             y = positionData[num][1]
             y.append(temp_body.position.get()[1])
             positionData[num] = [x, y]
-        idx += 1
 
 
 def animate(i):
     global positionData
-    global front
-    global main
-    global back
-    ax1.clear()
+    global pointers
+    global expiry
+    ax1.clear() # clear lines
+
     for body in positionData:
-        back2 = max(0, back)
-        ax1.plot(body[0][back2:front], body[1][back2:front]) #Plot only up to a certain point of the arrays.
-    front += 1
-    back = front - 80
+        back2 = max(0, pointers[0]) #Set back2 to 0 if negative.
+        ax1.plot(body[0][back2:pointers[1]], # x values of current body being plotted.
+                 body[1][back2:pointers[1]], # y values '' ''
+                 marker = 'o', # Marker used to denote current position
+                 markevery=[-1]) # Position of marker (second last)
+
+    pointers[1] += 1 # increment front pointer
+    pointers[0] = pointers[1] - expiry # reset back pointer
+
 
 class Main(QMainWindow, Ui_MainWindow): # Go to Form -> View Code in QTDesigner to see structure of GUI.
     def __init__(self, ):
@@ -92,8 +94,6 @@ class Main(QMainWindow, Ui_MainWindow): # Go to Form -> View Code in QTDesigner 
         self.textEdit.append(text)
         logging.debug(text)
 
-    def updateProgressBar(self, value):
-        self.loading_bar_widget.setValue(value)
 
 
 if __name__ == "__main__":
@@ -104,26 +104,19 @@ if __name__ == "__main__":
     fig = Figure()
     ax1 = fig.add_subplot(1, 1, 1)
     ax1.axis('equal')
-    ax1.plot(-175*(10**9),-175*(10**9))
-    ax1.plot(175*(10**9),175*(10**9))
-    # ax1.autoscale_view(False, False, False)
-    # axes = fig.gca()
-    # axes.set_xlim([-150*(10**9), 150*(10**9)])
-    # axes.set_ylim([-150*(10**9), 150*(10**9)])
-
     main.addMpl(fig) # Add figure to the GUI
     main.addToolBar() # Add toolbar to the GUI; MUST BE CALLED AFTER .addMpl()
-    main.showMaximized() #Show GUI
+    # main.showMaximized() #Show GUI
     main.show()
 
     # Configure Earth Body
     Earth = Body()
     Earth.id = 1
     Earth.name = "Earth"
-    Earth.mass = 5.972 * (10 ** 24)
-    Earth.position.set(149600000000, 0)
+    Earth.mass = 5.972e24
+    Earth.position.set(AU, 0)
     Earth.velocity = Vector()
-    Earth.velocity.set(0, 29.8 * (10 ** 3))
+    Earth.velocity.set(0, 29.8e3)
     Earth.type = "Planet"
     main.log(str(Earth))
 
@@ -137,7 +130,7 @@ if __name__ == "__main__":
     Sun.type = "Star"
     main.log(str(Sun))
 
-    # Configure third Body
+    # Configure Mars Body
     Mars = Body()
     Mars.id = 3
     Mars.name = "Mars"
@@ -157,6 +150,7 @@ if __name__ == "__main__":
     Halley.type = "Comet"
     main.log(str(Halley))
 
+    # Configure Jupiter Body
     Jupiter = Body()
     Jupiter.id = 5
     Jupiter.name = "Jupiter"
@@ -166,7 +160,7 @@ if __name__ == "__main__":
     Jupiter.type = "Planet"
     main.log(str(Jupiter))
 
-    bodies = [Sun, Earth, Mars, Halley, Jupiter]
+    bodies = [Sun, Earth, Mars, Halley]
     manager = Manager()
     positionData = manager.list()
     for body in bodies:
@@ -174,10 +168,9 @@ if __name__ == "__main__":
 
     p = Process(target=generate, args=(bodies, positionData,))
     # Must have trailing comma after final argument.
-
+    expiry = 3000000
+    pointers = [0 - expiry, 0]
     p.start() #Spawn new process.
-    front = 0
-    back = front-50
-    ani = animation.FuncAnimation(fig, animate, interval=0) # Create animation updating every 2ms.
+    ani = animation.FuncAnimation(fig, animate) # Create animation updating every 2ms.
     sys.exit(app.exec_())
 
