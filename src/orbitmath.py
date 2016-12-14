@@ -22,7 +22,6 @@ def distance(a, b):
         y_diff = a.position.get()[1] - b.position.get()[1]
         difference = Vector()
         difference.set(x_diff, y_diff)
-        #logging.debug("Distance returned: {}".format(str(difference)))
         return difference
     else:
         logging.WARNING("Distance calculation is not between two bodies: {} / {}".format(a, b))
@@ -48,7 +47,7 @@ def calculate_resultant_force(all_bodies, req_body):
     resultant_force = Vector()
 
     for body in all_bodies:
-        if body.id != req_body.id and ((body.mass / req_body.mass) > 1e2):
+        if body.id != req_body.id:
             resultant_force.add(force(body, req_body))
     req_body.updateSelf(resultant_force)
     return req_body

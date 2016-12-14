@@ -337,31 +337,6 @@
            <item>
             <layout class="QVBoxLayout" name="toolbar_container"/>
            </item>
-           <item>
-            <widget class="QProgressBar" name="loading_bar_widget">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
-             <property name="minimumSize">
-              <size>
-               <width>400</width>
-               <height>0</height>
-              </size>
-             </property>
-             <property name="value">
-              <number>24</number>
-             </property>
-             <property name="textVisible">
-              <bool>false</bool>
-             </property>
-             <property name="invertedAppearance">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
           </layout>
          </item>
          <item>

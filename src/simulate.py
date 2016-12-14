@@ -58,12 +58,12 @@ def animate(i):
 
     for body in positionData:
         back2 = max(0, pointers[0]) #Set back2 to 0 if negative.
-        ax1.plot(body[0][back2:pointers[1]], # x values of current body being plotted.
-                 body[1][back2:pointers[1]], # y values '' ''
+        ax1.plot(body[0][back2::], # x values of current body being plotted.
+                 body[1][back2::], # y values '' ''
                  marker = 'o', # Marker used to denote current position
                  markevery=[-1]) # Position of marker (second last)
 
-    pointers[1] += 1 # increment front pointer
+    pointers[1] += 100 # increment front pointer
     pointers[0] = pointers[1] - expiry # reset back pointer
 
 
@@ -109,6 +109,7 @@ if __name__ == "__main__":
     # main.showMaximized() #Show GUI
     main.show()
 
+    #Body Config
     # Configure Earth Body
     Earth = Body()
     Earth.id = 1
@@ -145,10 +146,10 @@ if __name__ == "__main__":
     Halley.id = 4
     Halley.name = "Halley"
     Halley.mass = 2.2e14
-    Halley.velocity.set(-50e3, 0)
+    Halley.velocity.set(54.49e3, 0)
     Halley.position.set(0, 88e9)
     Halley.type = "Comet"
-    main.log(str(Halley))
+
 
     # Configure Jupiter Body
     Jupiter = Body()
@@ -160,7 +161,25 @@ if __name__ == "__main__":
     Jupiter.type = "Planet"
     main.log(str(Jupiter))
 
-    bodies = [Sun, Earth, Mars, Halley]
+    # Configure Charon Body
+    Charon = Body()
+    Charon.id = 5
+    Charon.name = "Charon"
+    Charon.mass = 1.586e21
+    Charon.velocity.set(0, 0.21e3)
+    Charon.position.set(17536e3, 0)
+    Charon.type = "Moon"
+
+    # Configure Pluto Body
+    Pluto = Body()
+    Pluto.id = 6
+    Pluto.name = "Pluto"
+    Pluto.mass = 1.309e22
+    Pluto.velocity.set(0, 0)
+    Pluto.position.set(0, 0)
+    Pluto.type = "Planet"
+
+    bodies = [Pluto, Charon]
     manager = Manager()
     positionData = manager.list()
     for body in bodies:
