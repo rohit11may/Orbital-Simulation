@@ -4,7 +4,7 @@
 # Last changed on 12/12/2016
 
 import logging
-from src.vector import Vector #imports the vector class from Vector.py
+from src.vector import Vector  # imports the vector class from Vector.py
 
 logging.basicConfig(format='%(asctime)s.%(msecs)03d // %(message)s',
                     filename="..//logs//logfile.log",
@@ -12,15 +12,16 @@ logging.basicConfig(format='%(asctime)s.%(msecs)03d // %(message)s',
                     filemode='w',
                     level=logging.DEBUG)
 
+
 class Body(object):
     def __init__(self):
-        self._id = "" #id initialised to empty string.
-        self._name = "" # Name initialised to empty string.
-        self._mass = 0 # Mass initialised to 0.
-        self._position = Vector() # Position initialised to zero vector.
-        self._velocity = Vector() # Velocity initialised to zero vector.
-        self._type = "" #Type initialised to empty string.
-        self._acceleration = Vector() # Acceleration initialised to 0
+        self._id = ""  # id initialised to empty string.
+        self._name = ""  # Name initialised to empty string.
+        self._mass = 0  # Mass initialised to 0.
+        self._position = Vector()  # Position initialised to zero vector.
+        self._velocity = Vector()  # Velocity initialised to zero vector.
+        self._type = ""  # Type initialised to empty string.
+        self._acceleration = Vector()  # Acceleration initialised to 0
 
     def __repr__(self):
         return "Name: {} \n" \
@@ -34,7 +35,7 @@ class Body(object):
         self.velocity.add(self.acceleration.multiply(dt))
         self.position.add(self.velocity.multiply(dt))
 
-    #Getter functions. @property avoids the need to use the getter and setter function calls when using it in code.
+    # Getter functions. @property avoids the need to use the getter and setter function calls when using it in code.
     @property
     def id(self):
         return self._id
@@ -63,7 +64,7 @@ class Body(object):
     def type(self):
         return self._type
 
-    #Setter functions. Uses .setter suffix to denote the setter functions. E.g. "body.id" will call the setter below.
+    # Setter functions. Uses .setter suffix to denote the setter functions. E.g. "body.id" will call the setter below.
     @id.setter
     def id(self, value):
         self._id = value
@@ -84,21 +85,24 @@ class Body(object):
         if isinstance(value, Vector):
             self._position = value
         else:
-            logging.critical("{}: Position must be a vector: Value = {} Type = {}".format(self.name, value, type(value)))
+            logging.critical(
+                "{}: Position must be a vector: Value = {} Type = {}".format(self.name, value, type(value)))
 
     @velocity.setter
     def velocity(self, value):
         if isinstance(value, Vector):
-            self._velocity= value
+            self._velocity = value
         else:
-            logging.critical("{}: Velocity must be a vector: Value = {} Type = {}".format(self.name, value, type(value)))
+            logging.critical(
+                "{}: Velocity must be a vector: Value = {} Type = {}".format(self.name, value, type(value)))
 
     @acceleration.setter
     def acceleration(self, value):
         if isinstance(value, Vector):
             self._acceleration = value
         else:
-            logging.critical("{}: Acceleration must be a vector: Value = {} Type = {}".format(self.name, value, type(value)))
+            logging.critical(
+                "{}: Acceleration must be a vector: Value = {} Type = {}".format(self.name, value, type(value)))
 
     @type.setter
     def type(self, value):

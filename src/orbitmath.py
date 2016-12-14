@@ -16,6 +16,7 @@ logging.basicConfig(format='%(asctime)s.%(msecs)03d // %(message)s',
                     filemode='w',
                     level=logging.DEBUG)
 
+
 def distance(a, b):
     if isinstance(a, Body) and isinstance(b, Body):
         x_diff = a.position.get()[0] - b.position.get()[0]
@@ -26,6 +27,7 @@ def distance(a, b):
     else:
         logging.WARNING("Distance calculation is not between two bodies: {} / {}".format(a, b))
 
+
 def force(a, b):
     if isinstance(a, Body) and isinstance(b, Body):
         dist = distance(a, b)
@@ -34,10 +36,9 @@ def force(a, b):
 
         theta = atan2(dy, dx)
 
-        Fx, Fy = force_val * cos(theta), force_val*sin(theta)
+        Fx, Fy = force_val * cos(theta), force_val * sin(theta)
         force_val = Vector()
         force_val.set(Fx, Fy)
-        #logging.debug("Force returned: {}".format(str(force_val)))
         return force_val
     else:
         logging.warning("Force calculation is not between two bodies: {} / {}".format(a, b))
