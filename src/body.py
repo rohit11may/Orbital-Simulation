@@ -24,11 +24,11 @@ class Body(object):
         self._acceleration = Vector()  # Acceleration initialised to 0
 
     def __repr__(self):
-        return "Name: {} \n" \
-               "Mass: {} \n" \
-               "Position: {} \n" \
-               "Velocity: {} \n" \
-               "-----------".format(self.name, self.mass, self.position, self.velocity)
+        return "Name: {}, " \
+               "Mass: {}, " \
+               "Position: {}, " \
+               "Velocity: {}." \
+               "".format(self.name, self.mass, self.position, self.velocity)
 
     def updateSelf(self, force, dt=10e2):
         self.acceleration = force.divide(self.mass)

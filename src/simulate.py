@@ -28,8 +28,15 @@ import src.real_body_config as lib
 # Others
 import sys
 import logging
+from random import randint
 
 AU = 149598e6
+RED = '#ff0000'
+BLUE = '#0000ff'
+GREEN = '#00ff00'
+
+userBodies = []
+
 logging.basicConfig(format='%(asctime)s.%(msecs)03d // %(message)s',
                     filename="..//logs//logfile.log",
                     datefmt='%H:%M:%S',
@@ -67,8 +74,41 @@ def animate(i):
     pointers[1] += 100  # increment front pointer
     pointers[0] = pointers[1] - expiry  # reset back pointer
 
-def on_click():
-    print("Hello World")
+def changeTextColour(text, colour):
+    new_text = "<span style=\" color:{};\" >".format(colour)
+    new_text += text
+    new_text += "</span>"
+    return new_text
+
+def SaveBody(widget, name, mass, position, velocity, type):
+    global userBodies
+    for body in userBodies:
+        if body[1] == widget:
+            body[0].name = name
+            body[0].mass = mass
+            body[0].position.set(position[0], position[1])
+            body[0].velocity.set(velocity[0], velocity[1])
+            body[0].type = str(type)
+            main.log("{} Saved.".format(body[0].name))
+            main.log(str(userBodies))
+            main.log("")
+            main.log("")
+            main.log("")
+            return
+
+    newBody = Body()
+    newBody.name = name
+    newBody.mass = mass
+    newBody.position.set(position[0], position[1])
+    newBody.velocity.set(velocity[0], velocity[1])
+    newBody.type = str(type)
+    userBodies.append((newBody, widget))
+    main.log("{} created!".format(newBody.name))
+    main.log(str(userBodies))
+
+def genID():
+    return randint(1,1000000)
+
 
 class BodyConfig(BodyConfigMainWindow, UI_BodyConfigMainWindow):
     def __init__(self):
@@ -111,14 +151,29 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
     def add_config(self):
         config = BodyConfig()
         config.delete_btn.clicked.connect(lambda: self.del_config(config))
+        config.save.clicked.connect(lambda: SaveBody(config,
+                                                     config.name.text(),
+                                                     config.mass.text(),
+                                                     (config.posX.text(), config.posY.text()),
+                                                     (config.velX.text(), config.velY.text()),
+                                                     config.type.currentText()))
+
+
         self.config_widgets.append(config)
         self.bodyConfig.addWidget(self.config_widgets[-1])
 
     @pyqtSlot()
     def del_config(self, widget):
+        global userBodies
         self.bodyConfig.removeWidget(widget)
         widget.deleteLater()
+        for num, body in enumerate(userBodies):
+            if body[1] == widget:
+                del userBodies[num]
+                break
+        main.log(str(widget) + " removed.")
         widget = None
+        main.log(str(userBodies))
 
 if __name__ == "__main__":
 
