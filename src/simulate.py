@@ -28,6 +28,7 @@ import src.real_body_config as lib
 # Others
 import sys
 import logging
+import re
 from random import randint
 
 AU = 149598e6
@@ -36,6 +37,10 @@ BLUE = '#0000ff'
 GREEN = '#00ff00'
 
 userBodies = []
+positionData = []
+pointers = []
+# -/+ floats with exponents of -/+ integer powers
+input_mask = re.compile('^[-+]?[0-9]*[.]?[0-9]+([eE]?[-+]?[0-9]+)?$')
 
 logging.basicConfig(format='%(asctime)s.%(msecs)03d // %(message)s',
                     filename="..//logs//logfile.log",
@@ -44,7 +49,8 @@ logging.basicConfig(format='%(asctime)s.%(msecs)03d // %(message)s',
                     level=logging.DEBUG)
 
 Ui_MainWindow, QMainWindow = loadUiType('..//GUI//window.ui')  # Load UI file from GUI folder.
-UI_BodyConfigMainWindow, BodyConfigMainWindow = loadUiType('..//GUI//body_config_widget.ui')  # Load UI file from GUI folder.
+UI_BodyConfigMainWindow, BodyConfigMainWindow = loadUiType(
+    '..//GUI//body_config_widget.ui')  # Load UI file from GUI folder.
 
 
 def generate(bodies, positionData):
@@ -58,21 +64,6 @@ def generate(bodies, positionData):
             y.append(temp_body.position.get()[1])
             positionData[num] = [x, y]
 
-def animate(i):
-    global positionData
-    global pointers
-    global expiry
-    ax1.clear()  # clear lines
-
-    for body in positionData:
-        back2 = max(0, pointers[0])  # Set back2 to 0 if negative.
-        ax1.plot(body[0][back2::],  # x values of current body being plotted.
-                 body[1][back2::],  # y values '' ''
-                 marker='o',  # Marker used to denote current position
-                 markevery=[-1])  # Position of marker (second last)
-
-    pointers[1] += 100  # increment front pointer
-    pointers[0] = pointers[1] - expiry  # reset back pointer
 
 def changeTextColour(text, colour):
     new_text = "<span style=\" color:{};\" >".format(colour)
@@ -80,34 +71,49 @@ def changeTextColour(text, colour):
     new_text += "</span>"
     return new_text
 
+
 def SaveBody(widget, name, mass, position, velocity, type):
-    global userBodies
+    global userBodies, input_mask, RED
+    invalid = False
+    if name == "":  # Presence check for name.
+        main.log(changeTextColour("Enter a name!".format(name), RED));
+        return
+    if not input_mask.match(mass):  # Validates mass
+        main.log(changeTextColour("Invalid input for mass of {}".format(name), RED))
+        invalid = True
+    if not input_mask.match(position[0]):  # Validates x position
+        main.log(changeTextColour("Invalid input for x position of {}".format(name), RED))
+        invalid = True
+    if not input_mask.match(position[1]):  # Validates y position
+        main.log(changeTextColour("Invalid input for y position of {}".format(name), RED))
+        invalid = True
+    if not input_mask.match(velocity[0]):  # Validates x velocity
+        main.log(changeTextColour("Invalid input for x velocity of {}".format(name), RED))
+        invalid = True
+    if not input_mask.match(velocity[1]):  # Validates y velocity
+        main.log(changeTextColour("Invalid input for y velocity of {}".format(name), RED))
+        invalid = True
+    if invalid: main.log("-" * 30); return
+
     for body in userBodies:
         if body[1] == widget:
             body[0].name = name
-            body[0].mass = mass
-            body[0].position.set(position[0], position[1])
-            body[0].velocity.set(velocity[0], velocity[1])
+            body[0].mass = float(mass)
+            body[0].position.set(float(position[0]), float(position[1]))
+            body[0].velocity.set(float(velocity[0]), float(velocity[1]))
             body[0].type = str(type)
             main.log("{} Saved.".format(body[0].name))
-            main.log(str(userBodies))
-            main.log("")
-            main.log("")
-            main.log("")
             return
 
     newBody = Body()
     newBody.name = name
-    newBody.mass = mass
-    newBody.position.set(position[0], position[1])
-    newBody.velocity.set(velocity[0], velocity[1])
+    newBody.mass = float(mass)
+    newBody.position.set(float(position[0]), float(position[1]))
+    newBody.velocity.set(float(velocity[0]), float(velocity[1]))
     newBody.type = str(type)
     userBodies.append((newBody, widget))
     main.log("{} created!".format(newBody.name))
     main.log(str(userBodies))
-
-def genID():
-    return randint(1,1000000)
 
 
 class BodyConfig(BodyConfigMainWindow, UI_BodyConfigMainWindow):
@@ -124,6 +130,7 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
 
         # Setup Buttons
         self.create_new_body.clicked.connect(self.add_config)
+        self.play_button.clicked.connect(self.play)
 
         # Setup console box
         self.textEdit = QTextEdit()
@@ -158,7 +165,6 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
                                                      (config.velX.text(), config.velY.text()),
                                                      config.type.currentText()))
 
-
         self.config_widgets.append(config)
         self.bodyConfig.addWidget(self.config_widgets[-1])
 
@@ -175,8 +181,45 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
         widget = None
         main.log(str(userBodies))
 
-if __name__ == "__main__":
+    def animate(i):
+        global positionData, pointers, expiry
+        print("HERE")
+        ax1.clear()  # clear lines
+        for body in positionData:
+            back2 = max(0, pointers[0])  # Set back2 to 0 if negative.
+            ax1.plot(body[0][back2::],  # x values of current body being plotted.
+                     body[1][back2::],  # y values '' ''
+                     marker='o',  # Marker used to denote current position
+                     markevery=[-1])  # Position of marker (second last)
 
+        pointers[1] += 100  # increment front pointer
+        pointers[0] = pointers[1] - expiry  # reset back pointer
+
+    def play(self):
+
+        global positionData, pointers, fig, ax1
+        if userBodies == []:
+            main.log("No bodies configured.")
+            return
+        bodies = [body[0] for body in userBodies]  # Bodies to be simulated.
+        print(bodies)
+        for num, body in enumerate(bodies):
+            bodies[num].id = num  # Assign unique id to all bodies being simulated
+
+        manager = Manager()  # Shared multidimensional array manager accessible by both processes.
+        positionData = manager.list()  # Shared multidimensional array
+        for body in bodies:
+            positionData.append([[], []])  # Creates x y lists for each body in the body list.
+
+        p = Process(target=generate, args=(bodies, positionData,))  # Creates process p for data generation
+        # Must have trailing comma after final argument.
+        expiry = 3000000
+        pointers = [0 - expiry, 0]  # Plotting Pointers
+        p.start()  # Spawn new process.
+        ani = animation.FuncAnimation(fig, self.animate)  # Create animation updating every 2ms.
+
+
+if __name__ == "__main__":
     app = QApplication(sys.argv)
     main = Main()
 
@@ -184,23 +227,8 @@ if __name__ == "__main__":
     ax1 = fig.add_subplot(1, 1, 1)
     ax1.axis('equal')
 
-
     main.addMpl(fig)  # Add figure to the GUI
     main.addToolBar()  # Add toolbar to the GUI; MUST BE CALLED AFTER .addMpl()
     # main.showMaximized() #Show GUI
     main.show()
-
-
-    bodies = [lib.Pluto, lib.Charon]  # Bodies to be simulated.
-    manager = Manager()  # Shared multidimensional array manager accessible by both processes.
-    positionData = manager.list()  # Shared multidimensional array
-    for body in bodies:
-        positionData.append([[], []])  # Creates x y lists for each body in the body list.
-
-    p = Process(target=generate, args=(bodies, positionData,))  # Creates process p for data generation
-    # Must have trailing comma after final argument.
-    expiry = 3000000
-    pointers = [0 - expiry, 0]  # Plotting Pointers
-    # p.start()  # Spawn new process.
-    ani = animation.FuncAnimation(fig, animate)  # Create animation updating every 2ms.
     sys.exit(app.exec_())
