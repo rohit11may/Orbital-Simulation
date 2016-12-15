@@ -83,9 +83,7 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
         self.config_widgets = []
 
         # Setup Buttons
-        btn = self.create_new_body
-        btn.connect(on_click)
-        self.create_new_body = btn
+        self.create_new_body.clicked.connect(self.add_config)
 
         # Setup console box
         self.textEdit = QTextEdit()
@@ -111,8 +109,16 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
 
     @pyqtSlot()
     def add_config(self):
-        self.config_widgets.append(BodyConfig())
+        config = BodyConfig()
+        config.delete_btn.clicked.connect(lambda: self.del_config(config))
+        self.config_widgets.append(config)
         self.bodyConfig.addWidget(self.config_widgets[-1])
+
+    @pyqtSlot()
+    def del_config(self, widget):
+        self.bodyConfig.removeWidget(widget)
+        widget.deleteLater()
+        widget = None
 
 if __name__ == "__main__":
 
