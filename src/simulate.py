@@ -22,14 +22,12 @@ from matplotlib.figure import Figure
 # Local
 from src.body import Body
 from src.orbitmath import calculate_resultant_force
-from src.vector import Vector
 import src.real_body_config as lib
 
 # Others
 import sys
 import logging
 import re
-from random import randint
 
 AU = 149598e6
 RED = '#ff0000'
@@ -118,6 +116,9 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
             self.ax1.clear()
         return
 
+    def pause(self):
+        self.ani.event_source.stop()
+        main.log("Simulation Paused!")
 
     def SaveBody(self, widget, name, mass, position, velocity, type):
         invalid = False
@@ -162,36 +163,38 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
         main.log(str(self.userBodies))
 
     def animate(self, i):
-        if self.playback_mode:
-            self.ax1.clear()  # clear lines
-            for body in self.positionData:
-                back2 = max(0, self.pointers[0])  # Set back2 to 0 if negative.
-                self.ax1.plot(body[0][back2::],  # x values of current body being plotted.
-                         body[1][back2::],  # y values '' ''
-                         marker='o',  # Marker used to denote current position
-                         markevery=[-1])  # Position of marker (second last)
-            self.pointers[1] += 100  # increment front pointer
-            self.pointers[0] = self.pointers[1] - self.expiry  # reset back pointer
+        self.ax1.clear()  # clear lines
+        for body in self.positionData:
+            back2 = max(0, self.pointers[0])  # Set back2 to 0 if negative.
+            self.ax1.plot(body[0][back2:self.pointers[1]],  # x values of current body being plotted.
+                     body[1][back2:self.pointers[1]],  # y values '' ''
+                     marker='o',  # Marker used to denote current position
+                     markevery=[-1])  # Position of marker (second last)
+        self.pointers[1] += 1  # increment front pointer
+        self.pointers[0] = self.pointers[1] - self.expiry  # reset back pointer
 
     def play(self):
         self.playback_mode = not self.playback_mode
         if self.playback_mode:
             self.play_button.setText("Pause")
+            self.ani.event_source.start()
+            main.log("Simulation Played!")
             self.playback_mode = True
         else:
             self.play_button.setText("Play")
+            self.pause()
             self.playback_mode = False
 
 
-        # if self.userBodies == []:
-        #     main.log("No bodies configured.")
-        #     return
+        if self.userBodies == []:
+            main.log("No bodies configured.")
+            return
+
         if self.data_gen_process == None:
             self.play_button.setEnabled(False)
             bodies = [body[0] for body in self.userBodies]  # Bodies to be simulated.
             for num, body in enumerate(bodies):
                 bodies[num].id = num  # Assign unique id to all bodies being simulated
-            bodies = [lib.Earth, lib.Sun]
             manager = Manager()  # Shared multidimensional array manager accessible by both processes.
             self.positionData = manager.list()  # Shared multidimensional array
             self.data_gen = Value('i', 1)
