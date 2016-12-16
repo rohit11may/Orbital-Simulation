@@ -69,7 +69,7 @@ class BodyConfig(BodyConfigMainWindow, UI_BodyConfigMainWindow):
 
 
 def generate(bodies, positionData, data_gen):
-    while data_gen == 1:
+    while data_gen.value == 1:
         for num, body in enumerate(bodies):
             temp_body = calculate_resultant_force(bodies, body)
             bodies[num] = temp_body
@@ -87,11 +87,10 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
         self.input_mask = re.compile('^[-+]?[0-9]*[.]?[0-9]+([eE]?[-+]?[0-9]+)?$')
 
         self.fig = None
-        self.ani = None
         self.ax1 = None
         self.data_gen_process = None
         self.data_gen = False # True = Data being generated. False = No data generated.
-        self.playback_mode = True # Play = True, Pause = False
+        self.playback_mode = False # Play = True, Pause = False
 
         # Animation
         self.positionData = []
@@ -111,11 +110,12 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
         logging.info("Setup Console Box")
 
     def stop(self):
-        self.data_gen = 0
+        self.data_gen.value = 0
         if self.data_gen_process != None:
             pid = self.data_gen_process.pid
             self.data_gen_process.join(); self.data_gen_process = None
             main.log("Data gen process stopped: {}".format(pid))
+            self.ax1.clear()
         return
 
 
@@ -162,34 +162,36 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
         main.log(str(self.userBodies))
 
     def animate(self, i):
-        print("HERE")
-        self.ax1.clear()  # clear lines
-        for body in self.positionData:
-            back2 = max(0, self.pointers[0])  # Set back2 to 0 if negative.
-            self.ax1.plot(body[0][back2::],  # x values of current body being plotted.
-                     body[1][back2::],  # y values '' ''
-                     marker='o',  # Marker used to denote current position
-                     markevery=[-1])  # Position of marker (second last)
-
-        self.pointers[1] += 100  # increment front pointer
-        self.pointers[0] = self.pointers[1] - self.expiry  # reset back pointer
+        if self.playback_mode:
+            self.ax1.clear()  # clear lines
+            for body in self.positionData:
+                back2 = max(0, self.pointers[0])  # Set back2 to 0 if negative.
+                self.ax1.plot(body[0][back2::],  # x values of current body being plotted.
+                         body[1][back2::],  # y values '' ''
+                         marker='o',  # Marker used to denote current position
+                         markevery=[-1])  # Position of marker (second last)
+            self.pointers[1] += 100  # increment front pointer
+            self.pointers[0] = self.pointers[1] - self.expiry  # reset back pointer
 
     def play(self):
         self.playback_mode = not self.playback_mode
         if self.playback_mode:
             self.play_button.setText("Pause")
+            self.playback_mode = True
         else:
             self.play_button.setText("Play")
+            self.playback_mode = False
 
 
-        if self.userBodies == []:
-            main.log("No bodies configured.")
-            return
+        # if self.userBodies == []:
+        #     main.log("No bodies configured.")
+        #     return
         if self.data_gen_process == None:
             self.play_button.setEnabled(False)
             bodies = [body[0] for body in self.userBodies]  # Bodies to be simulated.
             for num, body in enumerate(bodies):
                 bodies[num].id = num  # Assign unique id to all bodies being simulated
+            bodies = [lib.Earth, lib.Sun]
             manager = Manager()  # Shared multidimensional array manager accessible by both processes.
             self.positionData = manager.list()  # Shared multidimensional array
             self.data_gen = Value('i', 1)
@@ -203,7 +205,6 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
             main.log("Data gen process started: {}".format(self.data_gen_process.pid))
             self.play_button.setEnabled(True)
 
-        self.ani = animation.FuncAnimation(self.fig, self.animate)  # Create animation updating every 2ms.
 
     def addMpl(self):
         self.fig = Figure()
@@ -260,6 +261,6 @@ if __name__ == "__main__":
     main = Main()
     main.addMpl()  # Add figure to the GUI
     # main.showMaximized() #Show GUI
-
+    main.ani = animation.FuncAnimation(main.fig, main.animate)  # Create animation updating every 2ms.
     main.show()
     sys.exit(app.exec_())
