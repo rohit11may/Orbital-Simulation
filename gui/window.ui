@@ -96,7 +96,7 @@
              <property name="currentIndex">
               <number>0</number>
              </property>
-             <widget class="QWidget" name="summary">
+             <widget class="QWidget" name="config">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
                 <horstretch>0</horstretch>
@@ -110,7 +110,7 @@
                </size>
               </property>
               <attribute name="title">
-               <string>Summary</string>
+               <string>Configuration</string>
               </attribute>
               <layout class="QVBoxLayout" name="summary_layout">
                <property name="rightMargin">
@@ -121,6 +121,9 @@
                </property>
                <item>
                 <widget class="QScrollArea" name="body_config_scrollArea">
+                 <property name="enabled">
+                  <bool>true</bool>
+                 </property>
                  <property name="sizePolicy">
                   <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
                    <horstretch>0</horstretch>
@@ -161,9 +164,9 @@
                </item>
               </layout>
              </widget>
-             <widget class="QWidget" name="detailed">
+             <widget class="QWidget" name="stats_2">
               <attribute name="title">
-               <string>Detailed</string>
+               <string>Stats</string>
               </attribute>
               <layout class="QHBoxLayout" name="detailed_layout">
                <item>
@@ -188,10 +191,15 @@
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>298</width>
-                    <height>334</height>
+                    <width>98</width>
+                    <height>28</height>
                    </rect>
                   </property>
+                  <layout class="QHBoxLayout" name="horizontalLayout">
+                   <item>
+                    <layout class="QVBoxLayout" name="stats"/>
+                   </item>
+                  </layout>
                  </widget>
                 </widget>
                </item>
@@ -217,6 +225,9 @@
            </property>
            <item>
             <widget class="QPushButton" name="import_body">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
              <property name="sizePolicy">
               <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
                <horstretch>0</horstretch>
@@ -225,6 +236,12 @@
              </property>
              <property name="text">
               <string>Import Body</string>
+             </property>
+             <property name="checkable">
+              <bool>false</bool>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
              </property>
             </widget>
            </item>
