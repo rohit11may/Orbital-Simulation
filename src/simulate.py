@@ -105,7 +105,6 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
         self.fig = None # Figure
         self.ax1 = None # Axis
         self.data_gen_process = None # Variable to store the process object for the generation function.
-
         self.data_gen_pause = Value('i', 1) # Pause flag. 1 = PLAY 0 = PAUSE; Used in generate() to prevent update.
         self.data_gen_stop = Value('i', 1) # Stop flag. 1 = PLAY 0 = STOP; Used in generate() to stay in function
         self.playback_mode = False # Play = True, Pause = False; Used to change state of play button
@@ -198,7 +197,8 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
         main.log(str(newBody)) # Log details to console
 
     def animate(self, i):
-        self.ax1.clear()  # clear lines
+        self.ax1.clear()
+        self.ax1.autoscale(self.autoscale.isChecked())
         for body in self.positionData: # Loop through each body's position array in positionData (shared memory!)
             back2 = max(0, self.pointers[0])  # Set back2 to 0 if negative.
             self.ax1.plot(body[0][back2:self.pointers[1]],  # x values of current body being plotted.
@@ -269,9 +269,9 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
         self.fig = Figure() # Create figure.
         self.ax1 = self.fig.add_subplot(1, 1, 1) # Create axis from subplot
         self.ax1.axis('equal') # Stop distortion of orbits, by making each axis graduations same width in pixels.
+        self.ax1.autoscale(False)
         self.canvas = FigureCanvas(self.fig)  # Create canvas for figure.
         self.fig.set_facecolor('white') # Set background
-
         self.mplvl.addWidget(self.canvas)  # Add canvas as widget to mplvl layout in window.ui file.
         self.canvas.draw()  # Draw canvas
         logging.info("Added Matplotlib graph.")
