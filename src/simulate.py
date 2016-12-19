@@ -35,7 +35,6 @@ RED = '#ff0000'
 BLUE = '#0000ff'
 GREEN = '#00ff00'
 
-# -/+ floats with exponents of -/+ integer powers
 
 logging.basicConfig(format='%(asctime)s.%(msecs)03d // %(message)s',
                     filename="..//logs//logfile.log",
@@ -45,9 +44,9 @@ logging.basicConfig(format='%(asctime)s.%(msecs)03d // %(message)s',
 
 Ui_MainWindow, QMainWindow = loadUiType('..//GUI//window.ui')  # Load UI file from GUI folder.
 UI_BodyConfigMainWindow, BodyConfigMainWindow = loadUiType(
-    '..//GUI//body_config_widget.ui')  # Load UI file from GUI folder.
+    '..//GUI//body_config_widget.ui')  # Load config UI file from GUI folder.
 UI_BodyStatsMainWindow, BodyStatsMainWindow = loadUiType(
-    '..//GUI//body_stats_widget.ui')  # Load UI file from GUI folder.
+    '..//GUI//body_stats_widget.ui')  # Load stats widget UI file from GUI folder.
 
 
 def changeTextColour(text, colour):
@@ -57,19 +56,19 @@ def changeTextColour(text, colour):
     return new_text
 
 
-class BodyConfig(BodyConfigMainWindow, UI_BodyConfigMainWindow):
+class BodyConfig(BodyConfigMainWindow, UI_BodyConfigMainWindow): # Setup config UI for use in GUI
     def __init__(self):
         super(BodyConfig, self).__init__()
         self.setupUi(self)
 
-class BodyStats(BodyStatsMainWindow, UI_BodyStatsMainWindow):
+class BodyStats(BodyStatsMainWindow, UI_BodyStatsMainWindow): # Setup stats UI for use in GUI
     def __init__(self):
         super(BodyStats, self).__init__()
         self.setupUi(self)
 
 def generate(bodies, positionData, data_gen_pause, data_gen_stop):
-    while data_gen_stop.value == 1:
-        if data_gen_pause.value == 1:
+    while data_gen_stop.value == 1: # If the stop flag (multiprocessing value) equals 1, repeat forever.
+        if data_gen_pause.value == 1: # If the pause flag equals 1, keep checking pause flag, but do not update.
             for num, body in enumerate(bodies):
                 temp_body = calculate_resultant_force(bodies, body)
                 bodies[num] = temp_body
@@ -82,13 +81,12 @@ def generate(bodies, positionData, data_gen_pause, data_gen_stop):
 
 def statsUpdate(stats):
     global main
-
-    for num, body in enumerate(main.Bodies):
-        if main.stats_widgets.index(stats) == num:
-            main.stats_widgets[num].posX.setText(str(body.position.get()[0]))
-            main.stats_widgets[num].posY.setText(str(body.position.get()[1]))
-            main.stats_widgets[num].velX.setText(str(body.velocity.get()[0]))
-            main.stats_widgets[num].velY.setText(str(body.velocity.get()[1]))
+    for num, body in enumerate(main.Bodies): # Loop through the bodies.
+        if main.stats_widgets.index(stats) == num: # If the stats widget being updated is in the same position as body.
+            main.stats_widgets[num].posX.setText(str(body.position.get()[0])) # Update posX
+            main.stats_widgets[num].posY.setText(str(body.position.get()[1])) # Update posY
+            main.stats_widgets[num].velX.setText(str(body.velocity.get()[0])) # Update velX
+            main.stats_widgets[num].velY.setText(str(body.velocity.get()[1])) # Update velY
             break
 
 
@@ -99,68 +97,72 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
     def __init__(self, ):
         super(Main, self).__init__()
         self.setupUi(self)
-        self.config_widgets = []
-        self.stats_widgets = []
-        self.input_mask = re.compile('^[-+]?[0-9]*[.]?[0-9]+([eE]?[-+]?[0-9]+)?$')
+        self.config_widgets = [] # List of config widget objects
+        self.stats_widgets = [] # List of stats widget objects
+        # -/+ floats with exponents of -/+ integer powers
+        self.input_mask = re.compile('^[-+]?[0-9]*[.]?[0-9]+([eE]?[-+]?[0-9]+)?$') # Regex pattern for input validation.
 
-        self.fig = None
-        self.ax1 = None
-        self.data_gen_process = None
-        self.stats_update_process = None
+        self.fig = None # Figure
+        self.ax1 = None # Axis
+        self.data_gen_process = None # Variable to store the process object for the generation function.
 
-        self.data_gen_pause = Value('i', 1)
-        self.data_gen_pause.value = 1
-        self.data_gen_stop = Value('i', 1)
-        self.data_gen_stop.value = 1
-
-        self.playback_mode = False # Play = True, Pause = False
+        self.data_gen_pause = Value('i', 1) # Pause flag. 1 = PLAY 0 = PAUSE; Used in generate() to prevent update.
+        self.data_gen_stop = Value('i', 1) # Stop flag. 1 = PLAY 0 = STOP; Used in generate() to stay in function
+        self.playback_mode = False # Play = True, Pause = False; Used to change state of play button
 
         # Animation
-        self.positionData = []
-        self.userBodies = []
-        self.expiry = 30000
+        self.positionData = [] # Stores all positions of bodies.
+        self.userBodies = [] # Stores user configured bodies from GUI
+        self.expiry = 30000 # Length of orbit to display
         self.pointers = [0 - self.expiry, 0]  # Plotting Pointers
 
         # Setup Buttons
-        self.create_new_body.clicked.connect(self.add_config)
-        self.play_button.clicked.connect(self.play)
-        self.stop_button.clicked.connect(self.stop)
+        self.create_new_body.clicked.connect(self.add_config) # Connect create new body button
+        self.play_button.clicked.connect(self.play) # Connect play button
+        self.stop_button.clicked.connect(self.stop) # Connect stop button
 
         # Setup console box
-        self.textEdit = QTextEdit()
-        self.console_box.setWidget(self.textEdit)
+        self.textEdit = QTextEdit() # Create text edit widget for console
+        self.console_box.setWidget(self.textEdit) # Add the widget to the console box scroll area
 
         logging.info("Setup Console Box")
 
+    # STOP BUTTON FUNCTION
     def stop(self):
         self.data_gen_stop.value = 0 # Stop the data generation in the generate function.
         if self.data_gen_process != None: # If there is a process to be stopped...
             pid = self.data_gen_process.pid # Save pid of process for the console output.
-            self.data_gen_process.join()
-            self.data_gen_process = None # Stop the process, Set process att to None
-            main.log("Data gen process stopped: {}".format(pid))
-            self.playback_mode = False
-            self.ani.event_source.stop()
-            self.body_config_scrollArea.setEnabled(True) # Enable all GUI elements
+            self.data_gen_process.join() # Stop the process
+            self.data_gen_process = None # Set process attribute to None
+            main.log("Data gen process stopped: {}".format(pid)) # Log to console
+            self.playback_mode = False # Reset playback_mode flag for next play()
+            self.ani.event_source.stop() # Stop animation
+
+            # Enable all GUI elements
+            self.body_config_scrollArea.setEnabled(True)
             self.create_new_body.setEnabled(True)
             self.play_button.setText("Play")
+
             self.ax1.clear() # Try and clear the screen?
 
+    # PAUSE BUTTON FUNCTION
     def pause(self):
-        self.ani.event_source.stop()
+        self.ani.event_source.stop() # Stop animation.
         self.data_gen_pause.value = 0
-        main.log("Simulation Paused!")
+        # Stop further data generation by changing pause flag, to ensure statsUpdate() only updates to latest
+        # plotted values.
+        main.log("Simulation Paused!") # Log to console.
 
     def SaveBody(self, widget, name, mass, position, velocity, type):
-        invalid = False
-        if name == "":  # Presence check for name.
+        invalid = False # Initialise validity flag to False
+        if name == "":  # Presence check for name first.
             main.log(changeTextColour("Enter a name!".format(name), RED));
             return
         if not self.input_mask.match(mass):  # Validates mass
-            main.log(changeTextColour("Invalid input for mass of {}".format(name), RED))
+            main.log(changeTextColour("Invalid input for mass of {}".format(name), RED)) # Use changeTextColour.
             invalid = True
         if not self.input_mask.match(position[0]):  # Validates x position
-            main.log(changeTextColour("Invalid input for x position of {}".format(name), RED))
+            main.log(changeTextColour("Invalid input for x position of {}".format(name), RED)) # Log results.
             invalid = True
         if not self.input_mask.match(position[1]):  # Validates y position
             main.log(changeTextColour("Invalid input for y position of {}".format(name), RED))
@@ -171,31 +173,33 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
         if not self.input_mask.match(velocity[1]):  # Validates y velocity
             main.log(changeTextColour("Invalid input for y velocity of {}".format(name), RED))
             invalid = True
-        if invalid: main.log("-" * 30); return
+        if invalid: main.log("-" * 30); return # Stop save function if anything is invalid.
 
-        for body in self.userBodies:
+        # If all is valid and the body is being SAVED not created...
+        for body in self.userBodies: # Iterate through userbodies to find corresponding body object to widget.
             if body[1] == widget:
                 body[0].name = name
                 body[0].mass = float(mass)
                 body[0].position.set(float(position[0]), float(position[1]))
                 body[0].velocity.set(float(velocity[0]), float(velocity[1]))
                 body[0].type = str(type)
-                main.log("{} Saved.".format(body[0].name))
-                return
+                main.log("{} Saved.".format(body[0].name)) # Log to console
+                return # End function
 
+        # If a new body is being created (because the function was not ended earlier)
         newBody = Body()
         newBody.name = name
-        newBody.mass = float(mass)
+        newBody.mass = float(mass) # Convert validated inputs to floats
         newBody.position.set(float(position[0]), float(position[1]))
         newBody.velocity.set(float(velocity[0]), float(velocity[1]))
         newBody.type = str(type)
-        self.userBodies.append((newBody, widget))
-        main.log("{} created!".format(newBody.name))
-        main.log(str(newBody))
+        self.userBodies.append((newBody, widget)) # Append to userBodies
+        main.log("{} created!".format(newBody.name))  # Log to console
+        main.log(str(newBody)) # Log details to console
 
     def animate(self, i):
         self.ax1.clear()  # clear lines
-        for body in self.positionData:
+        for body in self.positionData: # Loop through each body's position array in positionData (shared memory!)
             back2 = max(0, self.pointers[0])  # Set back2 to 0 if negative.
             self.ax1.plot(body[0][back2:self.pointers[1]],  # x values of current body being plotted.
                      body[1][back2:self.pointers[1]],  # y values '' ''
@@ -205,70 +209,68 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
         self.pointers[0] = self.pointers[1] - self.expiry  # reset back pointer
 
     def play(self):
-        if self.userBodies == []:
-            main.log("No bodies configured.")
-            return
+        if self.userBodies == []: # If there is nothing configured, end play function here.
+            main.log("No bodies configured.") # Log to console.
+            return # End play function, do not animate.
 
-        if self.data_gen_process == None:
-            self.play_button.setEnabled(False)
-            self.body_config_scrollArea.setEnabled(False)
-            self.create_new_body.setEnabled(False)
-            self.import_body.setEnabled(False)
-
+        if self.data_gen_process == None: # If there is no generate process started already...
+            self.play_button.setEnabled(False) # Disable play_button to prevent double clicks.
+            self.body_config_scrollArea.setEnabled(False) # Disable the config area
+            self.create_new_body.setEnabled(False) # Disable the create_new_body button
 
             bodies = [body[0] for body in self.userBodies]  # Bodies to be simulated.
             for num, body in enumerate(bodies):
                 bodies[num].id = num  # Assign unique id to all bodies being simulated
             manager = Manager()  # Shared multidimensional array manager accessible by both processes.
             bodyManager = Manager()
-            self.Bodies = bodyManager.list()
+            self.Bodies = bodyManager.list() # Shared memory array for body list. Required by statsUpdate!.
             self.positionData = manager.list()  # Shared multidimensional array
 
-            self.data_gen_pause = Value('i', 1)
+            self.data_gen_pause = Value('i', 1) # Reset pause and stop flags, otherwise animation will NOT reset!
             self.data_gen_pause.value = 1
             self.data_gen_stop = Value('i', 1)
             self.data_gen_stop.value = 1
 
-            for body in bodies:
+            for body in bodies: # Initialise positionData and Bodies
                 self.positionData.append([[], []])  # Creates x y lists for each body in the body list.
                 self.Bodies.append(body)
 
             self.data_gen_process = Process(target=generate, args=(self.Bodies,
                                                                    self.positionData,
                                                                    self.data_gen_pause,
-                                                                   self.data_gen_stop,))
+                                                                   self.data_gen_stop,)) # Create process object.
 
             # Must have trailing comma after final argument.
             self.data_gen_process.start()  # Spawn new process.
-            main.log("Data gen process started: {}".format(self.data_gen_process.pid))
-            for num, body in enumerate(self.Bodies):
+            main.log("Data gen process started: {}".format(self.data_gen_process.pid)) # Log to console
+            for num, body in enumerate(self.Bodies): # Initialise the stats widgets.
                 self.stats_widgets[num].name.setText(body.name)
                 self.stats_widgets[num].mass.setText(str(body.mass))
                 self.stats_widgets[num].setEnabled(True)
-            self.play_button.setEnabled(True)
+            self.play_button.setEnabled(True) # Re-enable play button.
 
 
-        self.playback_mode = not self.playback_mode
-        if self.playback_mode:
-            self.play_button.setText("Pause")
-            main.log("Simulation Played!")
-            self.data_gen_pause.value = 1
-            self.playback_mode = True
-            if self.data_gen_process != None:   self.ani.event_source.start()
+        self.playback_mode = not self.playback_mode # Toggle playback_mode flag.
+        if self.playback_mode: # If in PLAY mode.
+            self.play_button.setText("Pause") # Set text of play button to PAUSE
+            main.log("Simulation Played!") # Log to console
+            self.data_gen_pause.value = 1 # Set pause flag to PLAY (1)
+            self.playback_mode = True # Set playback_mode to TRUE (PLAY)
+            if self.data_gen_process != None:   self.ani.event_source.start() # If played after pause, restart animation
 
-        else:
-            self.play_button.setText("Play")
-            self.pause()
-            self.playback_mode = False
+        else: # If in PAUSE mode.
+            self.play_button.setText("Play") # Set text of play button to PLAY
+            self.pause()  # Start PAUSE function.
+            self.playback_mode = False # Set playback_mode flag to PAUSE (False)
 
 
 
     def addMpl(self):
-        self.fig = Figure()
-        self.ax1 = self.fig.add_subplot(1, 1, 1)
-        self.ax1.axis('equal')
+        self.fig = Figure() # Create figure.
+        self.ax1 = self.fig.add_subplot(1, 1, 1) # Create axis from subplot
+        self.ax1.axis('equal') # Stop distortion of orbits, by making each axis graduations same width in pixels.
         self.canvas = FigureCanvas(self.fig)  # Create canvas for figure.
-        self.fig.set_facecolor('white')
+        self.fig.set_facecolor('white') # Set background
 
         self.mplvl.addWidget(self.canvas)  # Add canvas as widget to mplvl layout in window.ui file.
         self.canvas.draw()  # Draw canvas
@@ -285,51 +287,51 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
 
     @pyqtSlot()
     def add_config(self):
-        config = BodyConfig()
-        stats = BodyStats()
-        stats.setEnabled(False)
-        config.delete_btn.clicked.connect(lambda: self.del_config(config, stats))
+        config = BodyConfig() # Create config widget
+        stats = BodyStats() # Create stats widget
+        stats.setEnabled(False) # Disable the stats widget
+        config.delete_btn.clicked.connect(lambda: self.del_config(config, stats)) # Connect delete button on config.
         config.save.clicked.connect(lambda: self.SaveBody(config,
                                                      config.name.text(),
                                                      config.mass.text(),
                                                      (config.posX.text(), config.posY.text()),
                                                      (config.velX.text(), config.velY.text()),
-                                                     config.type.currentText()))
-        stats.update.clicked.connect(lambda: statsUpdate(stats))
-        self.config_widgets.append(config)
+                                                     config.type.currentText())) # Connect save button.
+        stats.update.clicked.connect(lambda: statsUpdate(stats)) # Connect update button
+        self.config_widgets.append(config) # Append widgets to respective arrays.
         self.stats_widgets.append(stats)
-        self.bodyConfig.addWidget(self.config_widgets[-1])
+
+        self.bodyConfig.addWidget(self.config_widgets[-1]) # Add to scroll areas respectively.
         self.stats.addWidget(self.stats_widgets[-1])
 
     @pyqtSlot()
     def del_config(self, widget, stats_widget):
-        self.bodyConfig.removeWidget(widget)
+        self.bodyConfig.removeWidget(widget) # Remove from scroll areas.
         self.stats.removeWidget(stats_widget)
-        stats_widget.deleteLater()
+        stats_widget.deleteLater() # (This is just required, don't know why)
         widget.deleteLater()
         for num, body in enumerate(self.userBodies):
             if body[1] == widget:
-                del self.userBodies[num]
+                del self.userBodies[num] # Delete config object from the userBodies array
                 break
 
         for num, widg in enumerate(self.stats_widgets):
             if widg == stats_widget:
-                del self.stats_widgets[num]
+                del self.stats_widgets[num] # Delete stats object from stats_wdigets array
                 break
 
-        main.log("Widget removed.")
-        widget = None
+        main.log("Widget removed.") # Log to console
+        widget = None # (This is just required, don't know why)
         stats_widget = None
 
-
-
-
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    main = Main()
-    main.addMpl()  # Add figure to the GUI
-    # main.showMaximized() #Show GUI
+    app = QApplication(sys.argv) # Initialise application
+    main = Main() # Instantiate main object
+    main.addMpl()  # Add matplotlib!
+    # main.showMaximized() #Show GUI maximised
     main.ani = animation.FuncAnimation(main.fig, main.animate)  # Create animation updating every 2ms.
-    main.show()
-    sys.exit(app.exec_())
+    # Must be OUTSIDE class otherwise the animation will not function. Something to do with object being collected
+    # for garbage (expiring because its local or something)
+    main.show() # Show GUI
+    sys.exit(app.exec_()) # Exit function
 
