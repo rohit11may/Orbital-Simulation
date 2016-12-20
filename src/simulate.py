@@ -6,6 +6,7 @@
 # Imports
 # GUI Libraries.
 from PyQt4.QtGui import *
+from PyQt4.QtCore import Qt
 from PyQt4.QtCore import pyqtSlot
 from PyQt4.uic import loadUiType
 from matplotlib.backends.backend_qt4agg import (
@@ -75,8 +76,8 @@ def saveToDatabase(name, mass, position, velocity, type):
     db_read.close() # close read file because no duplicates found
     write_line = "{};{};{};{};{}\n".format(str(name),
                                            str(mass),
-                                           (str(position.get()[0]), str(position.get()[0])),
-                                           (str(velocity.get()[0]), str(velocity.get()[0])),
+                                           (str(position[0]), str(position[1])),
+                                           (str(velocity[0]), str(velocity[1])),
                                            str(type)) # format the line to be written
 
     db = open("..//lib//body_db.db", 'a') # open file in append mode
@@ -155,8 +156,8 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
         self.dt = cValue(c_double, 1e3)
 
         # Setup Buttons
-        self.create_new_body.clicked.connect(self.add_config(False))  # Connect create new body button
-        self.import_body.clicked.connect(lambda: self.add_config(True, self.returnSelectedItems()))  # Connect create new body button
+        self.create_new_body.clicked.connect(self.add_config)  # Connect create new body button
+        self.import_body.clicked.connect(lambda: self.add_import_config(self.returnSelectedItems()))  # Connect create new body button
         self.play_button.clicked.connect(self.play)  # Connect play button
         self.stop_button.clicked.connect(self.stop)  # Connect stop button
 
@@ -357,19 +358,40 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
     def returnSelectedItems(self):
         return sorted(set(index.row() for index in self.tableView.selectedIndexes()))
 
-    def add_import_config(self, selected_items):
-        for item in selected_items:
-            print(item)
+    def add_import_config(self, selected_indices):
+        data = []
+        for pos, row in enumerate(selected_indices):
+            data.append([])
+            for column in range(self.model.columnCount()):
+                index = self.model.index(row, column)
+                data[pos].append(str(self.model.data(index)))
+
+        for body in data:
+            position = body[2].split(',')
+            position = [part.split('\'')[1] for part in position]
+            velocity = body[3].split(',')
+            velocity = [part.split('\'')[1] for part in velocity]
+            self.add_config(data = [body[0],
+                                    body[1],
+                                    position[0],
+                                    position[1],
+                                    velocity[0],
+                                    velocity[1],
+                                    body[4]])
     @pyqtSlot()
     def add_config(self, data = None):
         config = BodyConfig()  # Create config widget
         if data is not None:
-            config.name.setText(str(data[0]))
-            config.posX.setText(str(data[1]))
-            config.posY.setText(str(data[2]))
-            config.velX.setText(str(data[3]))
-            config.velY.setText(str(data[4]))
-            config.type.setText(str(data[5]))
+            config.name.setText(data[0])
+            config.mass.setText(data[1])
+            config.posX.setText(data[2])
+            config.posY.setText(data[3])
+            config.velX.setText(data[4])
+            config.velY.setText(data[5])
+            index = config.type.findText(data[6], Qt.MatchFixedString)
+            if index >= 0:
+                config.type.setCurrentIndex(index)
+
         stats = BodyStats()  # Create stats widget
         stats.setEnabled(False)  # Disable the stats widget
         config.delete_btn.clicked.connect(lambda: self.del_config(config, stats))  # Connect delete button on config.
@@ -379,6 +401,13 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
                                                           (config.posX.text(), config.posY.text()),
                                                           (config.velX.text(), config.velY.text()),
                                                           config.type.currentText()))  # Connect save button.
+
+        config.db_save.clicked.connect(lambda: saveToDatabase(config.name.text(),
+                                                              config.mass.text(),
+                                                              (config.posX.text(), config.posY.text()),
+                                                              (config.velX.text(), config.velY.text()),
+                                                              config.type.currentText()))
+
         stats.update.clicked.connect(lambda: statsUpdate(stats))  # Connect update button
         self.config_widgets.append(config)  # Append widgets to respective arrays.
         self.stats_widgets.append(stats)
