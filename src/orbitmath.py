@@ -44,11 +44,11 @@ def force(a, b):
         logging.warning("Force calculation is not between two bodies: {} / {}".format(a, b))
 
 
-def calculate_resultant_force(all_bodies, req_body):
+def calculate_resultant_force(all_bodies, req_body, dt):
     resultant_force = Vector()
 
     for body in all_bodies:
         if body.id != req_body.id:
             resultant_force.add(force(body, req_body))
-    req_body.updateSelf(resultant_force)
+    req_body.updateSelf(resultant_force, dt=dt)
     return req_body

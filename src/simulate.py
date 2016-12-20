@@ -14,6 +14,8 @@ from matplotlib.backends.backend_qt4agg import (
 
 # Multiprocessing and GUI Threading module.
 from multiprocessing import Process, Manager, Value
+from multiprocessing.sharedctypes import Value as cValue
+from ctypes import c_double
 from threading import Thread
 
 # Matplotlib
@@ -22,7 +24,7 @@ from matplotlib.figure import Figure
 
 # Local
 from src.body import Body
-from src.orbitmath import calculate_resultant_force
+from src.orbitmath import calculate_resultant_force, distance
 import src.real_body_config as lib
 
 # Others
@@ -66,18 +68,17 @@ class BodyStats(BodyStatsMainWindow, UI_BodyStatsMainWindow): # Setup stats UI f
         super(BodyStats, self).__init__()
         self.setupUi(self)
 
-def generate(bodies, positionData, data_gen_pause, data_gen_stop):
+def generate(bodies, positionData, data_gen_pause, data_gen_stop, dt):
     while data_gen_stop.value == 1: # If the stop flag (multiprocessing value) equals 1, repeat forever.
         if data_gen_pause.value == 1: # If the pause flag equals 1, keep checking pause flag, but do not update.
             for num, body in enumerate(bodies):
-                temp_body = calculate_resultant_force(bodies, body)
+                temp_body = calculate_resultant_force(bodies, body, dt)
                 bodies[num] = temp_body
                 x = positionData[num][0]
                 x.append(temp_body.position.get()[0])
                 y = positionData[num][1]
                 y.append(temp_body.position.get()[1])
                 positionData[num] = [x, y]
-
 
 def statsUpdate(stats):
     global main
@@ -89,10 +90,6 @@ def statsUpdate(stats):
             main.stats_widgets[num].velY.setText(str(body.velocity.get()[1])) # Update velY
             break
 
-
-
-
-
 class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner to see structure of GUI.
     def __init__(self, ):
         super(Main, self).__init__()
@@ -102,18 +99,20 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
         # -/+ floats with exponents of -/+ integer powers
         self.input_mask = re.compile('^[-+]?[0-9]*[.]?[0-9]+([eE]?[-+]?[0-9]+)?$') # Regex pattern for input validation.
 
-        self.fig = None # Figure
-        self.ax1 = None # Axis
+        #Playback
         self.data_gen_process = None # Variable to store the process object for the generation function.
         self.data_gen_pause = Value('i', 1) # Pause flag. 1 = PLAY 0 = PAUSE; Used in generate() to prevent update.
         self.data_gen_stop = Value('i', 1) # Stop flag. 1 = PLAY 0 = STOP; Used in generate() to stay in function
         self.playback_mode = False # Play = True, Pause = False; Used to change state of play button
 
         # Animation
+        self.fig = None  # Figure
+        self.ax1 = None  # Axis
         self.positionData = [] # Stores all positions of bodies.
         self.userBodies = [] # Stores user configured bodies from GUI
         self.expiry = 30000 # Length of orbit to display
         self.pointers = [0 - self.expiry, 0]  # Plotting Pointers
+        self.dt = cValue(c_double, 1e3)
 
         # Setup Buttons
         self.create_new_body.clicked.connect(self.add_config) # Connect create new body button
@@ -200,18 +199,27 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
         self.ax1.clear()
         self.ax1.autoscale(self.autoscale.isChecked())
         for body in self.positionData: # Loop through each body's position array in positionData (shared memory!)
-            back2 = max(0, self.pointers[0])  # Set back2 to 0 if negative.
-            self.ax1.plot(body[0][back2:self.pointers[1]],  # x values of current body being plotted.
-                     body[1][back2:self.pointers[1]],  # y values '' ''
+            back = max(0, self.pointers[0])  # Set back2 to 0 if negative.
+            front = max(0, self.pointers[1])
+            self.pointers[1] = front
+            self.ax1.plot(body[0][back:front],  # x values of current body being plotted.
+                     body[1][back:front],  # y values '' ''
                      marker='o',  # Marker used to denote current position
                      markevery=[-1])  # Position of marker (second last)
-        self.pointers[1] += 10  # increment front pointer
+        self.pointers[1] += self.simspeed.value()  # increase/decrease front pointer by sim speed.
         self.pointers[0] = self.pointers[1] - self.expiry  # reset back pointer
 
     def play(self):
         if self.userBodies == []: # If there is nothing configured, end play function here.
             main.log("No bodies configured.") # Log to console.
             return # End play function, do not animate.
+
+        if not self.input_mask.match(self.time.text()):
+            main.log(changeTextColour("Invalid time entered.", RED))
+            return
+
+        self.dt = cValue(c_double, float(self.time.text()))
+
 
         if self.data_gen_process == None: # If there is no generate process started already...
             self.play_button.setEnabled(False) # Disable play_button to prevent double clicks.
@@ -231,14 +239,21 @@ class Main(QMainWindow, Ui_MainWindow):  # Go to Form -> View Code in QTDesigner
             self.data_gen_stop = Value('i', 1)
             self.data_gen_stop.value = 1
 
+            maxDistance = []
             for body in bodies: # Initialise positionData and Bodies
                 self.positionData.append([[], []])  # Creates x y lists for each body in the body list.
                 self.Bodies.append(body)
+                # for bodyA in bodies:
+                #     if bodyA.id != body.id:
+                #         maxDistance.append(distance(bodyA, body).getMagnitude())
+            # maxDistance = max(maxDistance)
+            # main.log("Maximum distance = {}".format(str(maxDistance)))
 
             self.data_gen_process = Process(target=generate, args=(self.Bodies,
                                                                    self.positionData,
                                                                    self.data_gen_pause,
-                                                                   self.data_gen_stop,)) # Create process object.
+                                                                   self.data_gen_stop,
+                                                                   self.dt,)) # Create process object.
 
             # Must have trailing comma after final argument.
             self.data_gen_process.start()  # Spawn new process.
