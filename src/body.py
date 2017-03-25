@@ -1,7 +1,7 @@
 # Orbital Simulation Practical Project
 # Rohit Prasad
 # 2016-2017
-# Last changed on 12/12/2016
+# Last changed on 25/03/2016
 
 import logging
 from src.vector import Vector  # imports the vector class from Vector.py
@@ -12,8 +12,14 @@ logging.basicConfig(format='%(asctime)s.%(msecs)03d // %(message)s',
                     filemode='w',
                     level=logging.DEBUG)
 
-
+# == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
+# BODY CLASS
+# == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
 class Body(object):
+
+    # == == == == == == == == == == == == ==
+    # INIT FUNCTION
+    # == == == == == == == == == == == == ==
     def __init__(self):
         self._id = ""  # id initialised to empty string.
         self._name = ""  # Name initialised to empty string.
@@ -35,7 +41,15 @@ class Body(object):
         self.velocity.add(self.acceleration.multiply(dt.value))
         self.position.add(self.velocity.multiply(dt.value))
 
-    # Getter functions. @property avoids the need to use the getter and setter function calls when using it in code.
+    # == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
+    # INTERFACES
+    # == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
+
+    # == ==
+    # GETTERS
+    # == ==
+
+    # @property avoids the need to use the getter and setter function calls when using it in code.
     @property
     def id(self):
         return self._id
@@ -64,7 +78,11 @@ class Body(object):
     def type(self):
         return self._type
 
-    # Setter functions. Uses .setter suffix to denote the setter functions. E.g. "body.id" will call the setter below.
+    # == ==
+    # SETTERS
+    # == ==
+
+    #  Uses .setter suffix to denote the setter functions. E.g. "body.id" will call the setter below.
     @id.setter
     def id(self, value):
         self._id = value
@@ -75,14 +93,14 @@ class Body(object):
 
     @mass.setter
     def mass(self, value):
-        if isinstance(value, float):
+        if isinstance(value, float): # Validates type is float
             self._mass = value
         else:
             logging.critical("{}: Mass must be a float: Value = {} Type = {}".format(self.name, value, type(value)))
 
     @position.setter
     def position(self, value):
-        if isinstance(value, Vector):
+        if isinstance(value, Vector): # Validates position object is vector
             self._position = value
         else:
             logging.critical(

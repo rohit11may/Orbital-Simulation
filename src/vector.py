@@ -1,13 +1,13 @@
 # Orbital Simulation Practical Project
 # Rohit Prasad
 # 2016-2017
-# Last changed on 12/12/2016
+# Last changed on 25/03/2016
 
 
 from math import (atan, degrees)
 import logging
+
 # Logging configuration : May need to be moved to a separate file.
-# 15:06:06.928 // Earth: Mass must be a float: Value = e Type = <class 'str'> Example log file.
 # Filemode = 'w' ensures the log file is reset on execution.
 
 logging.basicConfig(format='%(asctime)s.%(msecs)03d // %(message)s',
@@ -16,9 +16,9 @@ logging.basicConfig(format='%(asctime)s.%(msecs)03d // %(message)s',
                     filemode='w',
                     level=logging.DEBUG)
 
-# When creating a vector object, it instantiates as a zero vector.
-# Use setter method to assign values.
-
+# == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
+# VECTOR CLASS
+# == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == == ==
 class Vector(object):
 
     def __init__(self):
